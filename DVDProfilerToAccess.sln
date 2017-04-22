@@ -1,0 +1,52 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_Libraries", "_Libraries", "{01505590-D45A-4F4F-B09D-C02C7CD770BB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DVDProfilerHelper", "DVDProfilerXML\DVDProfilerHelper\DVDProfilerHelper\DVDProfilerHelper.csproj", "{461DACCA-8EBF-4C03-AD1A-C438E4EB3B36}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DVDProfilerXML", "DVDProfilerXML\DVDProfilerXML\DVDProfilerXML.csproj", "{2E90CC6F-892E-45B3-8812-EE52FFA3B222}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EnhancedNotesLibrary", "EnhancedNotesLibrary\EnhancedNotesLibrary\EnhancedNotesLibrary.csproj", "{3F3CBE6F-7CDE-4A89-9685-09B65394D171}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EnhancedPurchaseInfoLibrary", "EnhancedPurchaseInfoLibrary\EnhancedPurchaseInfoLibrary\EnhancedPurchaseInfoLibrary.csproj", "{9CB8D714-D5D6-440A-AA59-EB0C5D1FED26}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EnhancedTitlesLibrary", "EnhancedTitlesLibrary\EnhancedTitlesLibrary\EnhancedTitlesLibrary.csproj", "{B77FCD17-EF8C-4849-9FFE-7EA0A9FE11C5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DVDProfilerToAccessLib", "DVDProfilerToAccess\DVDProfilerToAccessLib\DVDProfilerToAccessLib.csproj", "{0408955B-F59A-4555-8A3A-234F0C58DFBE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DVDProfilerToAccess", "DVDProfilerToAccess\DVDProfilerToAccess\DVDProfilerToAccess.csproj", "{AA359C5A-E5A6-4A5F-BD3E-BA6C64ED4ED2}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{461DACCA-8EBF-4C03-AD1A-C438E4EB3B36}.Debug|x86.ActiveCfg = Debug|x86
+		{461DACCA-8EBF-4C03-AD1A-C438E4EB3B36}.Debug|x86.Build.0 = Debug|x86
+		{2E90CC6F-892E-45B3-8812-EE52FFA3B222}.Debug|x86.ActiveCfg = Debug|x86
+		{2E90CC6F-892E-45B3-8812-EE52FFA3B222}.Debug|x86.Build.0 = Debug|x86
+		{3F3CBE6F-7CDE-4A89-9685-09B65394D171}.Debug|x86.ActiveCfg = Debug|x86
+		{3F3CBE6F-7CDE-4A89-9685-09B65394D171}.Debug|x86.Build.0 = Debug|x86
+		{9CB8D714-D5D6-440A-AA59-EB0C5D1FED26}.Debug|x86.ActiveCfg = Debug|x86
+		{9CB8D714-D5D6-440A-AA59-EB0C5D1FED26}.Debug|x86.Build.0 = Debug|x86
+		{B77FCD17-EF8C-4849-9FFE-7EA0A9FE11C5}.Debug|x86.ActiveCfg = Debug|x86
+		{B77FCD17-EF8C-4849-9FFE-7EA0A9FE11C5}.Debug|x86.Build.0 = Debug|x86
+		{0408955B-F59A-4555-8A3A-234F0C58DFBE}.Debug|x86.ActiveCfg = Debug|x86
+		{0408955B-F59A-4555-8A3A-234F0C58DFBE}.Debug|x86.Build.0 = Debug|x86
+		{AA359C5A-E5A6-4A5F-BD3E-BA6C64ED4ED2}.Debug|x86.ActiveCfg = Debug|x86
+		{AA359C5A-E5A6-4A5F-BD3E-BA6C64ED4ED2}.Debug|x86.Build.0 = Debug|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{461DACCA-8EBF-4C03-AD1A-C438E4EB3B36} = {01505590-D45A-4F4F-B09D-C02C7CD770BB}
+		{2E90CC6F-892E-45B3-8812-EE52FFA3B222} = {01505590-D45A-4F4F-B09D-C02C7CD770BB}
+		{3F3CBE6F-7CDE-4A89-9685-09B65394D171} = {01505590-D45A-4F4F-B09D-C02C7CD770BB}
+		{9CB8D714-D5D6-440A-AA59-EB0C5D1FED26} = {01505590-D45A-4F4F-B09D-C02C7CD770BB}
+		{B77FCD17-EF8C-4849-9FFE-7EA0A9FE11C5} = {01505590-D45A-4F4F-B09D-C02C7CD770BB}
+	EndGlobalSection
+EndGlobal
