@@ -19,7 +19,7 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 
         private static SqlProcessor s_Instance;
 
-        private const String DVDProfilerSchemaVersion = "3.9.2.0";
+        private const String DVDProfilerSchemaVersion = "3.9.1.2";
 
         internal const String NULL = "NULL";
 
@@ -145,6 +145,7 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
                             InsertBaseData(CastAndCrewHash, "tCastAndCrew");
                             InsertBaseData(LinkCategoryHash, "tLinkCategory");
                             InsertBaseData(CountryOfOriginHash, "tCountryOfOrigin");
+
                             InsertBaseData();
 
                             //Phase 4: Fill DVDs into Database
@@ -160,10 +161,10 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 
                 if (Collection.DVDList != null)
                 {
-                    Feedback?.Invoke(this, new EventArgs<String>(String.Format("{0:#,##0} profiles transformed.", Collection.DVDList.Length)));
+                    Feedback?.Invoke(this, new EventArgs<String>($"{Collection.DVDList.Length:#,##0} profiles transformed."));
                 }
 
-                Feedback?.Invoke(this, new EventArgs<String>(String.Format("{0:#,##0} database entries created.", IdCounter)));
+                Feedback?.Invoke(this, new EventArgs<String>($"{IdCounter:#,##0} database entries created."));
             }
             catch (Exception exception)
             {
@@ -191,7 +192,7 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
                 catch
                 { }
 
-                Feedback?.Invoke(this, new EventArgs<String>(String.Format("Error: {0} ", exception.Message)));
+                Feedback?.Invoke(this, new EventArgs<String>($"Error: {exception.Message} "));
 
                 exceptionXml = new ExceptionXml(exception);
             }
@@ -2154,7 +2155,7 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
                 }
                 catch (OleDbException ex)
                 {
-                    throw (new ApplicationException("Error at query:" + Environment.NewLine + insertCommand, ex));
+                    throw (new ApplicationException($"Error at query:{Environment.NewLine}{insertCommand}", ex));
                 }
 
                 ProgressValueChanged?.Invoke(this, new EventArgs<Int32>(current));

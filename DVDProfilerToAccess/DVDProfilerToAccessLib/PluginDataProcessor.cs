@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using DoenaSoft.DVDProfiler.DVDProfilerXML.Version390;
+using DDI = DoenaSoft.DVDProfiler.DigitalDownloadInfo;
+using EF = DoenaSoft.DVDProfiler.EnhancedFeatures;
 using EN = DoenaSoft.DVDProfiler.EnhancedNotes;
 using EPI = DoenaSoft.DVDProfiler.EnhancedPurchaseInfo;
 using ET = DoenaSoft.DVDProfiler.EnhancedTitles;
@@ -30,6 +32,18 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
                 case (ET.ClassGuid.ClassIDBraced):
                     {
                         EnhancedTitlesProcessor.GetInsertCommand(sqlCommands, dvd, pluginData);
+
+                        break;
+                    }
+                case (DDI.ClassGuid.ClassIDBraced):
+                    {
+                        DigitalDownloadInfoProcessor.GetInsertCommand(sqlCommands, dvd, pluginData);
+
+                        break;
+                    }
+                case (EF.ClassGuid.ClassIDBraced):
+                    {
+                        EnhancedFeaturesProcessor.GetInsertCommand(sqlCommands, dvd, pluginData);
 
                         break;
                     }

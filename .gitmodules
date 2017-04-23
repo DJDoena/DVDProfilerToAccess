@@ -19,3 +19,12 @@
 [submodule "EnhancedPurchaseInfoLibrary"]
 	path = EnhancedPurchaseInfoLibrary
 	url = https://github.com/DJDoena/EnhancedPurchaseInfoLibrary.git
+[submodule "EnhancedFeaturesLibrary"]
+	path = EnhancedFeaturesLibrary
+	url = https://github.com/DJDoena/EnhancedFeaturesLibrary.git
+[submodule "DigitalDownloadInfoLibrary"]
+	path = DigitalDownloadInfoLibrary
+	url = https://github.com/DJDoena/DigitalDownloadInfoLibrary.git
+[submodule "DVDProfilerHelper"]
+	path = DVDProfilerHelper
+	url = https://github.com/DJDoena/DVDProfilerHelper

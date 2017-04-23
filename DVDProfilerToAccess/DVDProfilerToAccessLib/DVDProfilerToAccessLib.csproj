@@ -39,7 +39,9 @@
       <Link>Properties\DVDProfilerToAccess.AssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="CollectionTypeHashtable.cs" />
+    <Compile Include="EnhancedFeaturesProcessor.cs" />
     <Compile Include="EnhancedNotesProcessor.cs" />
+    <Compile Include="DigitalDownloadInfoProcessor.cs" />
     <Compile Include="EnhancedTitlesProcessor.cs" />
     <Compile Include="EnhancePurchaseInfoProcessor.cs" />
     <Compile Include="Hashtable.cs" />
