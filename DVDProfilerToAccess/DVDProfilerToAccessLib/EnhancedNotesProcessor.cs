@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Text;
+using DoenaSoft.DVDProfiler.DVDProfilerHelper;
 using DoenaSoft.DVDProfiler.DVDProfilerXML.Version390;
 using EN = DoenaSoft.DVDProfiler.EnhancedNotes;
 
@@ -15,12 +15,9 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
         {
             if (pluginData.Any?.Length == 1)
             {
-                using (StringReader sr = new StringReader(pluginData.Any[0].OuterXml))
-                {
-                    EN.EnhancedNotes en = (EN.EnhancedNotes)(EN.EnhancedNotes.XmlSerializer.Deserialize(sr));
+                EN.EnhancedNotes en = Serializer<EN.EnhancedNotes>.FromString(pluginData.Any[0].OuterXml);
 
-                    GetInsertCommand(sqlCommands, dvd, en);
-                }
+                GetInsertCommand(sqlCommands, dvd, en);
             }
         }
 

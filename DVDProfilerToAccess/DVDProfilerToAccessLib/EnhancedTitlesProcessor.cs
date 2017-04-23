@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Text;
+using DoenaSoft.DVDProfiler.DVDProfilerHelper;
 using DoenaSoft.DVDProfiler.DVDProfilerXML.Version390;
 using ET = DoenaSoft.DVDProfiler.EnhancedTitles;
 
@@ -15,12 +15,9 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
         {
             if (pluginData.Any?.Length == 1)
             {
-                using (StringReader sr = new StringReader(pluginData.Any[0].OuterXml))
-                {
-                    ET.EnhancedTitles et = (ET.EnhancedTitles)(ET.EnhancedTitles.XmlSerializer.Deserialize(sr));
+                ET.EnhancedTitles et = Serializer<ET.EnhancedTitles>.FromString(pluginData.Any[0].OuterXml);
 
-                    GetInsertCommand(sqlCommands, dvd, et);
-                }
+                GetInsertCommand(sqlCommands, dvd, et);
             }
         }
 

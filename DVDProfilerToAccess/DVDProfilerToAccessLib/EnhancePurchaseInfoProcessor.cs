@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.Text;
+using DoenaSoft.DVDProfiler.DVDProfilerHelper;
 using DoenaSoft.DVDProfiler.DVDProfilerXML.Version390;
 using EPI = DoenaSoft.DVDProfiler.EnhancedPurchaseInfo;
 
@@ -16,12 +16,9 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
         {
             if (pluginData.Any?.Length == 1)
             {
-                using (StringReader sr = new StringReader(pluginData.Any[0].OuterXml))
-                {
-                    EPI.EnhancedPurchaseInfo epi = (EPI.EnhancedPurchaseInfo)(EPI.EnhancedPurchaseInfo.XmlSerializer.Deserialize(sr));
+                EPI.EnhancedPurchaseInfo epi = Serializer<EPI.EnhancedPurchaseInfo>.FromString(pluginData.Any[0].OuterXml);
 
-                    GetInsertCommand(sqlCommands, dvd, epi);
-                }
+                GetInsertCommand(sqlCommands, dvd, epi);
             }
         }
 
