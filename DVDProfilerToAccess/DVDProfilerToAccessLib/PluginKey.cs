@@ -1,5 +1,5 @@
-using DoenaSoft.DVDProfiler.DVDProfilerXML.Version390;
 using System;
+using DoenaSoft.DVDProfiler.DVDProfilerXML.Version390;
 
 namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 {
@@ -13,33 +13,32 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
         {
             get
             {
-                PluginData pluginData;
+                PluginData pluginData = new PluginData();
 
-                pluginData = new PluginData();
                 pluginData.ClassID = m_PluginData.ClassID;
                 pluginData.Name = m_PluginData.Name;
+
                 return (pluginData);
             }
         }
 
         internal PluginKey(PluginData pluginData)
-        {            
+        {
             m_PluginData = new PluginData();
+
             m_PluginData.ClassID = pluginData.ClassID;
             m_PluginData.Name = pluginData.Name;
+
             m_HashCode = m_PluginData.ClassID.GetHashCode();
         }
 
         public override Int32 GetHashCode()
-        {
-            return (m_HashCode);
-        }
+            => (m_HashCode);
 
         public override Boolean Equals(Object obj)
         {
-            PluginKey other;
+            PluginKey other = obj as PluginKey;
 
-            other = obj as PluginKey;
             if (other == null)
             {
                 return (false);

@@ -1,5 +1,5 @@
-using DoenaSoft.DVDProfiler.DVDProfilerXML.Version390;
 using System;
+using DoenaSoft.DVDProfiler.DVDProfilerXML.Version390;
 
 namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 {
@@ -13,40 +13,39 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
         {
             get
             {
-                Tag tag;
+                Tag tag = new Tag();
 
-                tag = new Tag();
-                tag.FullName = this.m_Tag.FullName;
-                tag.Name = this.m_Tag.Name;
+                tag.FullName = m_Tag.FullName;
+                tag.Name = m_Tag.Name;
+
                 return (tag);
             }
         }
 
         internal TagKey(Tag tag)
         {
-            this.m_Tag = new Tag();
-            this.m_Tag.FullName = tag.FullName;
-            this.m_Tag.Name = tag.Name;
-            this.m_HashCode = this.Tag.FullName.GetHashCode();
+            m_Tag = new Tag();
+
+            m_Tag.FullName = tag.FullName;
+            m_Tag.Name = tag.Name;
+
+            m_HashCode = Tag.FullName.GetHashCode();
         }
 
         public override Int32 GetHashCode()
-        {
-            return (this.m_HashCode);
-        }
+            => (m_HashCode);
 
         public override Boolean Equals(Object obj)
         {
-            TagKey other;
+            TagKey other = obj as TagKey;
 
-            other = obj as TagKey;
             if (other == null)
             {
                 return (false);
             }
             else
             {
-                return (this.m_Tag.FullName == other.m_Tag.FullName);
+                return (m_Tag.FullName == other.m_Tag.FullName);
             }
         }
     }

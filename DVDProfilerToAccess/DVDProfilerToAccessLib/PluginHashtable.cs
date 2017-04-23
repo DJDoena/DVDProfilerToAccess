@@ -1,5 +1,5 @@
-using DoenaSoft.DVDProfiler.DVDProfilerXML.Version390;
 using System;
+using DoenaSoft.DVDProfiler.DVDProfilerXML.Version390;
 
 namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 {
@@ -7,25 +7,17 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
     {
         internal PluginHashtable(Int32 capacity)
             : base(capacity)
-        {
-        }
+        { }
 
         internal void Add(PluginData pluginData)
         {
-            base.Add(new PluginKey(pluginData));
+            Add(new PluginKey(pluginData));
         }
 
         internal Boolean ContainsKey(PluginData pluginData)
-        {
-            return (base.ContainsKey(new PluginKey(pluginData)));
-        }
+            => (ContainsKey(new PluginKey(pluginData)));
 
         internal Int32 this[PluginData pluginData]
-        {
-            get
-            {
-                return (base[new PluginKey(pluginData)]);
-            }
-        }
+            => (base[new PluginKey(pluginData)]);
     }
 }

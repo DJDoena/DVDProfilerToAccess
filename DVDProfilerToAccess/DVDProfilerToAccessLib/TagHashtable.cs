@@ -1,5 +1,5 @@
-using DoenaSoft.DVDProfiler.DVDProfilerXML.Version390;
 using System;
+using DoenaSoft.DVDProfiler.DVDProfilerXML.Version390;
 
 namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 {
@@ -7,25 +7,17 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
     {
         internal TagHashtable(Int32 capacity)
             : base(capacity)
-        {
-        }
+        { }
 
         internal void Add(Tag tag)
         {
-            base.Add(new TagKey(tag));
+            Add(new TagKey(tag));
         }
 
         internal Boolean ContainsKey(Tag tag)
-        {
-            return (base.ContainsKey(new TagKey(tag)));
-        }
+            => (ContainsKey(new TagKey(tag)));
 
         internal Int32 this[Tag tag]
-        {
-            get
-            {
-                return (base[new TagKey(tag)]);
-            }
-        }
+            => (base[new TagKey(tag)]);
     }
 }

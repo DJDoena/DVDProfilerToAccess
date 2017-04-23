@@ -1,5 +1,5 @@
-using DoenaSoft.DVDProfiler.DVDProfilerXML.Version390;
 using System;
+using DoenaSoft.DVDProfiler.DVDProfilerXML.Version390;
 
 namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 {
@@ -13,44 +13,43 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
         {
             get
             {
-                User user;
+                User user = new User();
 
-                user = new User();
-                user.EmailAddress = this.m_User.EmailAddress;
-                user.FirstName = this.m_User.FirstName;
-                user.LastName = this.m_User.LastName;
-                user.PhoneNumber = this.m_User.PhoneNumber;
+                user.EmailAddress = m_User.EmailAddress;
+                user.FirstName = m_User.FirstName;
+                user.LastName = m_User.LastName;
+                user.PhoneNumber = m_User.PhoneNumber;
+
                 return (user);
             }
         }
 
         internal UserKey(User user)
         {
-            this.m_User = new User();
-            this.m_User.EmailAddress = user.EmailAddress;
-            this.m_User.FirstName = user.FirstName;
-            this.m_User.LastName = user.LastName;
-            this.m_User.PhoneNumber = user.PhoneNumber;
-            this.m_HashCode = this.m_User.LastName.GetHashCode() / 2 + this.m_User.FirstName.GetHashCode() / 2;
+            m_User = new User();
+
+            m_User.EmailAddress = user.EmailAddress;
+            m_User.FirstName = user.FirstName;
+            m_User.LastName = user.LastName;
+            m_User.PhoneNumber = user.PhoneNumber;
+
+            m_HashCode = m_User.LastName.GetHashCode() / 2 + m_User.FirstName.GetHashCode() / 2;
         }
 
         public override Int32 GetHashCode()
-        {
-            return (this.m_HashCode);
-        }
+            => (m_HashCode);
 
         public override Boolean Equals(Object obj)
         {
-            UserKey other;
+            UserKey other = obj as UserKey;
 
-            other = obj as UserKey;
             if (other == null)
             {
                 return (false);
             }
             else
             {
-                return ((this.m_User.LastName == other.m_User.LastName) && (this.m_User.FirstName == other.m_User.FirstName));
+                return ((m_User.LastName == other.m_User.LastName) && (m_User.FirstName == other.m_User.FirstName));
             }
         }
     }

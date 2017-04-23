@@ -1,5 +1,5 @@
-using DoenaSoft.DVDProfiler.DVDProfilerXML.Version390;
 using System;
+using DoenaSoft.DVDProfiler.DVDProfilerXML.Version390;
 
 namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 {
@@ -7,25 +7,17 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
     {
         internal UserHashtable(Int32 capacity)
             : base(capacity)
-        {
-        }
+        { }
 
         internal void Add(User user)
         {
-            base.Add(new UserKey(user));
+            Add(new UserKey(user));
         }
 
         internal Boolean ContainsKey(User user)
-        {
-            return (base.ContainsKey(new UserKey(user)));
-        }
+            => (ContainsKey(new UserKey(user)));
 
         internal Int32 this[User user]
-        {
-            get
-            {
-                return (base[new UserKey(user)]);
-            }
-        }
+            => (base[new UserKey(user)]);
     }
 }
