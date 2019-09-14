@@ -2,26 +2,26 @@
 using System.Collections.Generic;
 using System.Text;
 using DoenaSoft.DVDProfiler.DVDProfilerHelper;
-using DoenaSoft.DVDProfiler.DVDProfilerXML.Version390;
+using DoenaSoft.DVDProfiler.DVDProfilerXML.Version400;
 using ET = DoenaSoft.DVDProfiler.EnhancedTitles;
 
 namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 {
     internal static class EnhancedTitlesProcessor
     {
-        internal static void GetInsertCommand(List<String> sqlCommands
+        internal static void GetInsertCommand(List<string> sqlCommands
             , DVD dvd
             , PluginData pluginData)
         {
             if (pluginData.Any?.Length == 1)
             {
-                ET.EnhancedTitles et = Serializer<ET.EnhancedTitles>.FromString(pluginData.Any[0].OuterXml);
+                ET.EnhancedTitles et = DVDProfilerSerializer<ET.EnhancedTitles>.FromString(pluginData.Any[0].OuterXml);
 
                 GetInsertCommand(sqlCommands, dvd, et);
             }
         }
 
-        private static void GetInsertCommand(List<String> sqlCommands
+        private static void GetInsertCommand(List<string> sqlCommands
             , DVD dvd
             , ET.EnhancedTitles et)
         {
@@ -59,7 +59,7 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
         {
             if (text != null)
             {
-                String title = (String.IsNullOrEmpty(text.Base64Title)) ? (text.Value) : (Encoding.UTF8.GetString(Convert.FromBase64String(text.Base64Title)));
+                string title = (string.IsNullOrEmpty(text.Base64Title)) ? (text.Value) : (Encoding.UTF8.GetString(Convert.FromBase64String(text.Base64Title)));
 
                 insertCommand.Append(SqlProcessor.PrepareOptionalTextForDb(title));
             }

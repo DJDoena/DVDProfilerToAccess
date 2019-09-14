@@ -5,7 +5,7 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 {
     internal sealed class PersonHashtable : Hashtable<PersonKey>
     {
-        internal PersonHashtable(Int32 capacity)
+        internal PersonHashtable(int capacity)
             : base(capacity)
         { }
 
@@ -14,10 +14,10 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
             Add(new PersonKey(person));
         }
 
-        internal Boolean ContainsKey(IPerson person)
+        internal bool ContainsKey(IPerson person)
             => (ContainsKey(new PersonKey(person)));
 
-        internal Int32 this[IPerson person]
+        internal int this[IPerson person]
             => (base[new PersonKey(person)]);
     }
 }

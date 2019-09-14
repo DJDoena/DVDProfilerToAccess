@@ -16,11 +16,11 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
         }
 
         [STAThread]
-        public static void Main(String[] args)
+        public static void Main(string[] args)
         {
             try
             {
-                String errorFile = Path.Combine(Environment.CurrentDirectory, "error.xml");
+                string errorFile = Path.Combine(Environment.CurrentDirectory, "error.xml");
 
                 if (File.Exists(errorFile))
                 {
@@ -32,9 +32,9 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 
             if (args?.Length > 0)
             {
-                Boolean found = false;
+                bool found = false;
 
-                for (Int32 i = 0; i < args.Length; i++)
+                for (int i = 0; i < args.Length; i++)
                 {
                     if (args[i] == "/skipversioncheck")
                     {
@@ -84,7 +84,7 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
             Console.ReadLine();
         }
 
-        private static void Process(String sourceFile)
+        private static void Process(string sourceFile)
         {
             using (SaveFileDialog sfd = new SaveFileDialog())
             {
@@ -103,7 +103,7 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
                 }
                 else
                 {
-                    String originalDatabase = Path.Combine(Environment.CurrentDirectory, "DVDProfiler.mdb");
+                    string originalDatabase = Path.Combine(Environment.CurrentDirectory, "DVDProfiler.mdb");
 
                     if (sfd.FileName == originalDatabase)
                     {
@@ -118,8 +118,8 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
             }
         }
 
-        private static void Process(String sourceFile
-            , String targetFile)
+        private static void Process(string sourceFile
+            , string targetFile)
         {
             DateTime start = DateTime.Now;
 
@@ -147,8 +147,8 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
             Console.WriteLine($"Time elapsed: {elapsed.Minutes}m {elapsed.Seconds}s");
         }
 
-        static void OnSqlProcessorProgressMaxChanged(Object sender
-            , EventArgs<Int32> e)
+        static void OnSqlProcessorProgressMaxChanged(object sender
+            , EventArgs<int> e)
         {
             if (e.Value == 0)
             {
@@ -156,16 +156,16 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
             }
         }
 
-        static void OnSqlProcessorFeedback(Object sender
-            , EventArgs<String> e)
+        static void OnSqlProcessorFeedback(object sender
+            , EventArgs<string> e)
         {
             Console.WriteLine(e.Value);
         }
 
-        static void OnSqlProcessorProgressValueChanged(Object sender
-            , EventArgs<Int32> e)
+        static void OnSqlProcessorProgressValueChanged(object sender
+            , EventArgs<int> e)
         {
-            Int32 progress = e.Value;
+            int progress = e.Value;
 
             if (progress > 0)
             {

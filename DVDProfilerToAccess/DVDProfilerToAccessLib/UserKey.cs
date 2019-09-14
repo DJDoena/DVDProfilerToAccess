@@ -1,5 +1,5 @@
 using System;
-using DoenaSoft.DVDProfiler.DVDProfilerXML.Version390;
+using DoenaSoft.DVDProfiler.DVDProfilerXML.Version400;
 
 namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 {
@@ -7,7 +7,7 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
     {
         private User m_User;
 
-        private Int32 m_HashCode;
+        private int m_HashCode;
 
         internal User User
         {
@@ -36,10 +36,10 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
             m_HashCode = m_User.LastName.GetHashCode() / 2 + m_User.FirstName.GetHashCode() / 2;
         }
 
-        public override Int32 GetHashCode()
+        public override int GetHashCode()
             => (m_HashCode);
 
-        public override Boolean Equals(Object obj)
+        public override bool Equals(object obj)
         {
             UserKey other = obj as UserKey;
 

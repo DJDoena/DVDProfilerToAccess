@@ -3,26 +3,26 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 using DoenaSoft.DVDProfiler.DVDProfilerHelper;
-using DoenaSoft.DVDProfiler.DVDProfilerXML.Version390;
+using DoenaSoft.DVDProfiler.DVDProfilerXML.Version400;
 using EPI = DoenaSoft.DVDProfiler.EnhancedPurchaseInfo;
 
 namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 {
     internal static class EnhancePurchaseInfoProcessor
     {
-        internal static void GetInsertCommand(List<String> sqlCommands
+        internal static void GetInsertCommand(List<string> sqlCommands
             , DVD dvd
             , PluginData pluginData)
         {
             if (pluginData.Any?.Length == 1)
             {
-                EPI.EnhancedPurchaseInfo epi = Serializer<EPI.EnhancedPurchaseInfo>.FromString(pluginData.Any[0].OuterXml);
+                EPI.EnhancedPurchaseInfo epi = DVDProfilerSerializer<EPI.EnhancedPurchaseInfo>.FromString(pluginData.Any[0].OuterXml);
 
                 GetInsertCommand(sqlCommands, dvd, epi);
             }
         }
 
-        private static void GetInsertCommand(List<String> sqlCommands
+        private static void GetInsertCommand(List<string> sqlCommands
             , DVD dvd
             , EPI.EnhancedPurchaseInfo epi)
         {
@@ -128,7 +128,7 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
             {
                 insertCommand.Append(SqlProcessor.PrepareOptionalTextForDb(price.DenominationType));
                 insertCommand.Append(", ");
-                insertCommand.Append(price.Value.ToString(CultureInfo.GetCultureInfo("en-US")));
+                insertCommand.Append(price.Value.ToString(SqlProcessor.FormatInfo));
             }
             else
             {

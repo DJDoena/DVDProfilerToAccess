@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using DoenaSoft.DVDProfiler.DVDProfilerXML.Version390;
+using DoenaSoft.DVDProfiler.DVDProfilerXML.Version400;
 using DDI = DoenaSoft.DVDProfiler.DigitalDownloadInfo;
 using EF = DoenaSoft.DVDProfiler.EnhancedFeatures;
 using EN = DoenaSoft.DVDProfiler.EnhancedNotes;
@@ -11,7 +11,7 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 {
     internal static class PluginDataProcessor
     {
-        internal static void GetInsertCommand(List<String> sqlCommands
+        internal static void GetInsertCommand(List<string> sqlCommands
             , DVD dvd
             , PluginData pluginData)
         {

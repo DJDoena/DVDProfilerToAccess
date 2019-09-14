@@ -2,26 +2,26 @@
 using System.Collections.Generic;
 using System.Text;
 using DoenaSoft.DVDProfiler.DVDProfilerHelper;
-using DoenaSoft.DVDProfiler.DVDProfilerXML.Version390;
+using DoenaSoft.DVDProfiler.DVDProfilerXML.Version400;
 using EN = DoenaSoft.DVDProfiler.EnhancedNotes;
 
 namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 {
     internal static class EnhancedNotesProcessor
     {
-        internal static void GetInsertEnhancedNotesCommand(List<String> sqlCommands
+        internal static void GetInsertEnhancedNotesCommand(List<string> sqlCommands
             , DVD dvd
             , PluginData pluginData)
         {
             if (pluginData.Any?.Length == 1)
             {
-                EN.EnhancedNotes en = Serializer<EN.EnhancedNotes>.FromString(pluginData.Any[0].OuterXml);
+                EN.EnhancedNotes en = DVDProfilerSerializer<EN.EnhancedNotes>.FromString(pluginData.Any[0].OuterXml);
 
                 GetInsertCommand(sqlCommands, dvd, en);
             }
         }
 
-        private static void GetInsertCommand(List<String> sqlCommands
+        private static void GetInsertCommand(List<string> sqlCommands
             , DVD dvd
             , EN.EnhancedNotes en)
         {
@@ -59,7 +59,7 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
         {
             if (text != null)
             {
-                String note = (String.IsNullOrEmpty(text.Base64Note)) ? (text.Value) : (Encoding.UTF8.GetString(Convert.FromBase64String(text.Base64Note)));
+                string note = (string.IsNullOrEmpty(text.Base64Note)) ? (text.Value) : (Encoding.UTF8.GetString(Convert.FromBase64String(text.Base64Note)));
 
                 insertCommand.Append(SqlProcessor.PrepareOptionalTextForDb(note));
                 insertCommand.Append(", ");

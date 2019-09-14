@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using DoenaSoft.DVDProfiler.DVDProfilerHelper;
-using DoenaSoft.DVDProfiler.DVDProfilerXML.Version390;
+using DoenaSoft.DVDProfiler.DVDProfilerXML.Version400;
 using EF = DoenaSoft.DVDProfiler.EnhancedFeatures;
 
 namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
@@ -11,19 +11,19 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
     {
         private const Byte FeatureCount = 40;
 
-        internal static void GetInsertCommand(List<String> sqlCommands
+        internal static void GetInsertCommand(List<string> sqlCommands
             , DVD dvd
             , PluginData pluginData)
         {
             if (pluginData.Any?.Length == 1)
             {
-                EF.EnhancedFeatures ef = Serializer<EF.EnhancedFeatures>.FromString(pluginData.Any[0].OuterXml);
+                EF.EnhancedFeatures ef = DVDProfilerSerializer<EF.EnhancedFeatures>.FromString(pluginData.Any[0].OuterXml);
 
                 GetInsertCommand(sqlCommands, dvd, ef);
             }
         }
 
-        private static void GetInsertCommand(List<String> sqlCommands
+        private static void GetInsertCommand(List<string> sqlCommands
             , DVD dvd
             , EF.EnhancedFeatures ef)
         {
@@ -33,7 +33,7 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
             insertCommand.Append(SqlProcessor.PrepareTextForDb(dvd.ID));
             insertCommand.Append(", ");
 
-            Boolean[] features = GetFeatures(ef);
+            bool[] features = GetFeatures(ef);
 
             for (Byte featureIndex = 1; featureIndex < FeatureCount; featureIndex++)
             {
@@ -48,9 +48,9 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
             sqlCommands.Add(insertCommand.ToString());
         }
 
-        private static Boolean[] GetFeatures(EF.EnhancedFeatures ef)
+        private static bool[] GetFeatures(EF.EnhancedFeatures ef)
         {
-            Boolean[] features = new Boolean[FeatureCount];
+            bool[] features = new bool[FeatureCount];
 
             if (ef.Feature != null)
             {

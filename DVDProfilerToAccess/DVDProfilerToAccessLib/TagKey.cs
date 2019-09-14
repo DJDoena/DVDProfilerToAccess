@@ -1,5 +1,5 @@
 using System;
-using DoenaSoft.DVDProfiler.DVDProfilerXML.Version390;
+using DoenaSoft.DVDProfiler.DVDProfilerXML.Version400;
 
 namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 {
@@ -7,7 +7,7 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
     {
         private Tag m_Tag;
 
-        private Int32 m_HashCode;
+        private int m_HashCode;
 
         internal Tag Tag
         {
@@ -32,10 +32,10 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
             m_HashCode = Tag.FullName.GetHashCode();
         }
 
-        public override Int32 GetHashCode()
+        public override int GetHashCode()
             => (m_HashCode);
 
-        public override Boolean Equals(Object obj)
+        public override bool Equals(object obj)
         {
             TagKey other = obj as TagKey;
 

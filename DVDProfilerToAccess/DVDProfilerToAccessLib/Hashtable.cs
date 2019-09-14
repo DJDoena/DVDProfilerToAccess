@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 {
-    internal class Hashtable<TKey> : Dictionary<TKey, Int32>
+    internal class Hashtable<TKey> : Dictionary<TKey, int>
     {
-        internal Hashtable(Int32 capacity)
+        internal Hashtable(int capacity)
             : base(capacity)
         { }
 

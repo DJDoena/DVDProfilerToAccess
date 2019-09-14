@@ -2,26 +2,26 @@
 using System.Collections.Generic;
 using System.Text;
 using DoenaSoft.DVDProfiler.DVDProfilerHelper;
-using DoenaSoft.DVDProfiler.DVDProfilerXML.Version390;
+using DoenaSoft.DVDProfiler.DVDProfilerXML.Version400;
 using DDI = DoenaSoft.DVDProfiler.DigitalDownloadInfo;
 
 namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 {
     internal static class DigitalDownloadInfoProcessor
     {
-        internal static void GetInsertCommand(List<String> sqlCommands
+        internal static void GetInsertCommand(List<string> sqlCommands
             , DVD dvd
             , PluginData pluginData)
         {
             if (pluginData.Any?.Length == 1)
             {
-                DDI.DigitalDownloadInfo ddi = Serializer<DDI.DigitalDownloadInfo>.FromString(pluginData.Any[0].OuterXml);
+                DDI.DigitalDownloadInfo ddi = DVDProfilerSerializer<DDI.DigitalDownloadInfo>.FromString(pluginData.Any[0].OuterXml);
 
                 GetInsertCommand(sqlCommands, dvd, ddi);
             }
         }
 
-        private static void GetInsertCommand(List<String> sqlCommands
+        private static void GetInsertCommand(List<string> sqlCommands
             , DVD dvd
             , DDI.DigitalDownloadInfo ddi)
         {
@@ -47,7 +47,7 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
         {
             if (text != null)
             {
-                String title = (String.IsNullOrEmpty(text.Base64Text)) ? (text.Value) : (Encoding.UTF8.GetString(Convert.FromBase64String(text.Base64Text)));
+                string title = (string.IsNullOrEmpty(text.Base64Text)) ? (text.Value) : (Encoding.UTF8.GetString(Convert.FromBase64String(text.Base64Text)));
 
                 insertCommand.Append(SqlProcessor.PrepareOptionalTextForDb(title));
             }
