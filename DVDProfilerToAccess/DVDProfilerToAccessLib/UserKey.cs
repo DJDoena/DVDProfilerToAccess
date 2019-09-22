@@ -1,56 +1,68 @@
 using System;
-using DoenaSoft.DVDProfiler.DVDProfilerXML.Version400;
+using System.ComponentModel;
+using System.Diagnostics;
+using Profiler = DoenaSoft.DVDProfiler.DVDProfilerXML.Version400;
 
 namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 {
-    internal class UserKey
+    [ImmutableObject(true)]
+    [DebuggerDisplay("{FirstName} {LastName}")]
+    internal sealed class UserKey : IEquatable<UserKey>
     {
-        private User m_User;
+        private readonly int _hashCode;
 
-        private int m_HashCode;
+        public string LastName { get; }
 
-        internal User User
+        public string FirstName { get; }
+
+        public string EmailAddress { get; }
+
+        public string PhoneNumber { get; }
+
+        public UserKey(Profiler.User user)
         {
-            get
+            LastName = user.LastName ?? string.Empty;
+            FirstName = user.FirstName ?? string.Empty;
+            EmailAddress = user.EmailAddress;
+            PhoneNumber = user.PhoneNumber;
+
+            _hashCode = LastName.ToLowerInvariant().GetHashCode()
+                ^ FirstName.ToLowerInvariant().GetHashCode();
+        }
+
+        public static bool IsValid(Profiler.User user) => !IsInvalid(user);
+
+        public static bool IsInvalid(Profiler.User user)
+        {
+            if (user == null)
             {
-                User user = new User();
-
-                user.EmailAddress = m_User.EmailAddress;
-                user.FirstName = m_User.FirstName;
-                user.LastName = m_User.LastName;
-                user.PhoneNumber = m_User.PhoneNumber;
-
-                return (user);
+                return true;
             }
-        }
-
-        internal UserKey(User user)
-        {
-            m_User = new User();
-
-            m_User.EmailAddress = user.EmailAddress;
-            m_User.FirstName = user.FirstName;
-            m_User.LastName = user.LastName;
-            m_User.PhoneNumber = user.PhoneNumber;
-
-            m_HashCode = m_User.LastName.GetHashCode() / 2 + m_User.FirstName.GetHashCode() / 2;
-        }
-
-        public override int GetHashCode()
-            => (m_HashCode);
-
-        public override bool Equals(object obj)
-        {
-            UserKey other = obj as UserKey;
-
-            if (other == null)
+            else if (string.IsNullOrEmpty(user.LastName) && string.IsNullOrEmpty(user.FirstName))
             {
-                return (false);
+                return true;
             }
             else
             {
-                return ((m_User.LastName == other.m_User.LastName) && (m_User.FirstName == other.m_User.FirstName));
+                return false;
             }
+        }
+
+        public override int GetHashCode() => _hashCode;
+
+        public override bool Equals(object obj) => Equals(obj as UserKey);
+
+        public bool Equals(UserKey other)
+        {
+            if (other == null)
+            {
+                return false;
+            }
+
+            var equals = string.Equals(LastName, other.LastName, StringComparison.InvariantCultureIgnoreCase)
+                 && string.Equals(FirstName, other.FirstName, StringComparison.InvariantCultureIgnoreCase);
+
+            return equals;
         }
     }
 }

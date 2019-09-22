@@ -101,6 +101,7 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 
             try
             {
+                //Phase 2: Fill Hashtables
                 DVDIdTypeHash = FillStaticHash<DVDID_Type>();
 
                 EventTypeHash = FillStaticHash<EventType>();
@@ -113,7 +114,6 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 
                 FillDynamicHash();
 
-                //Phase 3: Fill Basic Data Into Database
                 if (File.Exists(targetFile))
                 {
                     File.Delete(targetFile);
@@ -134,6 +134,7 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 
                             CheckDBVersion();
 
+                            //Phase 3: Fill Basic Data Into Database
                             InsertBaseData(LocalityHash, "tLocality");
                             InsertBaseData(DVDIdTypeHash, "tDVDIdType");
                             InsertBaseData(AudioChannelsHash, "tAudioChannels");
@@ -586,7 +587,7 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 
         private void GetInsertPluginDataCommands(List<string> sqlCommands)
         {
-            foreach (KeyValuePair<PluginKey, int> keyValue in PluginHash)
+            foreach (KeyValuePair<PluginDataKey, int> keyValue in PluginHash)
             {
                 GetInsertPluginDataCommand(sqlCommands, keyValue);
             }
@@ -617,7 +618,7 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
         }
 
         private void GetInsertPluginDataCommand(List<string> sqlCommands
-            , KeyValuePair<PluginKey, int> keyValue)
+            , KeyValuePair<PluginDataKey, int> keyValue)
         {
 
             StringBuilder insertCommand = new StringBuilder();
@@ -625,9 +626,9 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
             insertCommand.Append("INSERT INTO tPluginData VALUES (");
             insertCommand.Append(keyValue.Value.ToString());
             insertCommand.Append(", ");
-            insertCommand.Append(PrepareTextForDb(keyValue.Key.PluginData.ClassID));
+            insertCommand.Append(PrepareTextForDb(keyValue.Key.ClassId.ToString()));
             insertCommand.Append(", ");
-            insertCommand.Append(PrepareOptionalTextForDb(keyValue.Key.PluginData.Name));
+            insertCommand.Append(PrepareOptionalTextForDb(keyValue.Key.Name));
             insertCommand.Append(")");
 
             sqlCommands.Add(insertCommand.ToString());
@@ -641,9 +642,9 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
             insertCommand.Append("INSERT INTO tTag VALUES (");
             insertCommand.Append(keyValue.Value.ToString());
             insertCommand.Append(", ");
-            insertCommand.Append(PrepareOptionalTextForDb(keyValue.Key.Tag.Name));
+            insertCommand.Append(PrepareOptionalTextForDb(keyValue.Key.Name));
             insertCommand.Append(", ");
-            insertCommand.Append(PrepareOptionalTextForDb(keyValue.Key.Tag.FullName));
+            insertCommand.Append(PrepareOptionalTextForDb(keyValue.Key.FullName));
             insertCommand.Append(")");
 
             sqlCommands.Add(insertCommand.ToString());
@@ -671,26 +672,13 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
             insertCommand.Append("INSERT INTO tUser VALUES (");
             insertCommand.Append(keyValue.Value.ToString());
             insertCommand.Append(", ");
-            insertCommand.Append(PrepareOptionalTextForDb(keyValue.Key.User.LastName));
+            insertCommand.Append(PrepareOptionalTextForDb(keyValue.Key.LastName));
             insertCommand.Append(", ");
-            insertCommand.Append(PrepareOptionalTextForDb(keyValue.Key.User.FirstName));
+            insertCommand.Append(PrepareOptionalTextForDb(keyValue.Key.FirstName));
             insertCommand.Append(", ");
-
-            User user = keyValue.Key.User as User;
-
-            if (user != null)
-            {
-                insertCommand.Append(PrepareOptionalTextForDb(user.EmailAddress));
-                insertCommand.Append(", ");
-                insertCommand.Append(PrepareOptionalTextForDb(user.PhoneNumber));
-            }
-            else
-            {
-                insertCommand.Append(NULL);
-                insertCommand.Append(", ");
-                insertCommand.Append(NULL);
-            }
-
+            insertCommand.Append(PrepareOptionalTextForDb(keyValue.Key.EmailAddress));
+            insertCommand.Append(", ");
+            insertCommand.Append(PrepareOptionalTextForDb(keyValue.Key.PhoneNumber));
             insertCommand.Append(")");
 
             sqlCommands.Add(insertCommand.ToString());
@@ -780,7 +768,7 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
                 insertCommand.Append(keyValue.Value.ToString());
                 insertCommand.Append(", ");
 
-                IPerson keyData = keyValue.Key.KeyData;
+                var keyData = keyValue.Key;
 
                 insertCommand.Append(PrepareOptionalTextForDb(keyData.LastName));
                 insertCommand.Append(", ");
@@ -1795,7 +1783,7 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
             insertCommand.Append(", ");
             insertCommand.Append(dvd.Features.DBOX);
             insertCommand.Append(", ");
-            insertCommand.Append(dvd.Features.CineChat);        
+            insertCommand.Append(dvd.Features.CineChat);
             insertCommand.Append(", ");
             insertCommand.Append(dvd.Features.PlayAll);
             insertCommand.Append(", ");

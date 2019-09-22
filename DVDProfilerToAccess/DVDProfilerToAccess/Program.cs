@@ -123,7 +123,6 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
         {
             DateTime start = DateTime.Now;
 
-            //Phase 2: Fill Hashtables
             Console.WriteLine();
             Console.WriteLine("Tranforming data:");
 

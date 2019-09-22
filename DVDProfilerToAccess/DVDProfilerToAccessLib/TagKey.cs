@@ -1,52 +1,42 @@
 using System;
-using DoenaSoft.DVDProfiler.DVDProfilerXML.Version400;
+using System.ComponentModel;
+using System.Diagnostics;
+using Profiler = DoenaSoft.DVDProfiler.DVDProfilerXML.Version400;
 
 namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 {
-    internal sealed class TagKey
+    [ImmutableObject(true)]
+    [DebuggerDisplay("{FullName}")]
+    internal sealed class TagKey : IEquatable<TagKey>
     {
-        private Tag m_Tag;
+        private readonly int _hashCode;
 
-        private int m_HashCode;
+        public string FullName { get; }
 
-        internal Tag Tag
+        public string Name { get; }
+
+        public TagKey(Profiler.Tag tag)
         {
-            get
-            {
-                Tag tag = new Tag();
+            FullName = tag.FullName ?? string.Empty;
+            Name = tag.Name;
 
-                tag.FullName = m_Tag.FullName;
-                tag.Name = m_Tag.Name;
-
-                return (tag);
-            }
+            _hashCode = FullName.ToLowerInvariant().GetHashCode();
         }
 
-        internal TagKey(Tag tag)
+        public override int GetHashCode() => _hashCode;
+
+        public override bool Equals(object obj) => Equals(obj as TagKey);
+
+        public bool Equals(TagKey other)
         {
-            m_Tag = new Tag();
-
-            m_Tag.FullName = tag.FullName;
-            m_Tag.Name = tag.Name;
-
-            m_HashCode = Tag.FullName.GetHashCode();
-        }
-
-        public override int GetHashCode()
-            => (m_HashCode);
-
-        public override bool Equals(object obj)
-        {
-            TagKey other = obj as TagKey;
-
             if (other == null)
             {
-                return (false);
+                return false;
             }
-            else
-            {
-                return (m_Tag.FullName == other.m_Tag.FullName);
-            }
+
+            var equals = string.Equals(FullName, other.FullName, StringComparison.InvariantCultureIgnoreCase);
+
+            return equals;
         }
     }
 }
