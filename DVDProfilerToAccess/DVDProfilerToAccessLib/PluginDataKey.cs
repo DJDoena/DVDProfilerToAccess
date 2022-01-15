@@ -1,9 +1,9 @@
-using System;
-using System.Diagnostics;
-using Profiler = DoenaSoft.DVDProfiler.DVDProfilerXML.Version400;
-
 namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 {
+    using System;
+    using System.Diagnostics;
+    using Profiler = DVDProfilerXML.Version400;
+
     [DebuggerDisplay("{ClassId}: {Name}")]
     internal sealed class PluginDataKey : IEquatable<PluginDataKey>
     {
@@ -15,16 +15,16 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 
         public PluginDataKey(Profiler.PluginData pluginData)
         {
-            ClassId = new Guid(pluginData.ClassID);
+            this.ClassId = new Guid(pluginData.ClassID);
 
-            Name = pluginData.Name;
+            this.Name = pluginData.Name;
 
-            _hashCode = ClassId.GetHashCode();
+            _hashCode = this.ClassId.GetHashCode();
         }
 
         public override int GetHashCode() => _hashCode;
 
-        public override bool Equals(object obj) => Equals(obj as PluginDataKey);
+        public override bool Equals(object obj) => this.Equals(obj as PluginDataKey);
 
         public bool Equals(PluginDataKey other)
         {
@@ -33,7 +33,7 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
                 return false;
             }
 
-            var equals = ClassId == other.ClassId;
+            var equals = this.ClassId == other.ClassId;
 
             return equals;
         }

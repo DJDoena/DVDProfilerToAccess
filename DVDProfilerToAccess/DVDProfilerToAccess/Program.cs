@@ -1,18 +1,18 @@
-using System;
-using System.IO;
-using System.Reflection;
-using System.Windows.Forms;
-using DoenaSoft.DVDProfiler.DVDProfilerHelper;
-
 namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 {
+    using System;
+    using System.IO;
+    using System.Reflection;
+    using System.Windows.Forms;
+    using DVDProfilerHelper;
+
     public static class Program
     {
-        private static readonly WindowHandle WindowHandle;
+        private static readonly WindowHandle _windowHandle;
 
         static Program()
         {
-            WindowHandle = new WindowHandle();
+            _windowHandle = new WindowHandle();
         }
 
         [STAThread]
@@ -20,7 +20,7 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
         {
             try
             {
-                string errorFile = Path.Combine(Environment.CurrentDirectory, "error.xml");
+                var errorFile = Path.Combine(Environment.CurrentDirectory, "error.xml");
 
                 if (File.Exists(errorFile))
                 {
@@ -32,11 +32,11 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 
             if (args?.Length > 0)
             {
-                bool found = false;
+                var found = false;
 
-                for (int i = 0; i < args.Length; i++)
+                for (var argIndex = 0; argIndex < args.Length; argIndex++)
                 {
-                    if (args[i] == "/skipversioncheck")
+                    if (args[argIndex] == "/skipversioncheck")
                     {
                         break;
                     }
@@ -60,7 +60,7 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
             Console.WriteLine("Please select a \"collection.xml\" and a target location for the Access database!");
             Console.WriteLine("(You should see a file dialog. If not, please minimize your other programs.)");
 
-            using (OpenFileDialog ofd = new OpenFileDialog())
+            using (var ofd = new OpenFileDialog())
             {
                 ofd.Filter = "Collection.xml|*.xml";
                 ofd.CheckFileExists = true;
@@ -68,7 +68,7 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
                 ofd.Title = "Select Source File";
                 ofd.RestoreDirectory = true;
 
-                if (ofd.ShowDialog(WindowHandle) == DialogResult.Cancel)
+                if (ofd.ShowDialog(_windowHandle) == DialogResult.Cancel)
                 {
                     Console.WriteLine();
                     Console.WriteLine("Aborted.");
@@ -86,9 +86,9 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 
         private static void Process(string sourceFile)
         {
-            using (SaveFileDialog sfd = new SaveFileDialog())
+            using (var sfd = new SaveFileDialog())
             {
-                FileInfo fi = new FileInfo(sourceFile);
+                var fi = new FileInfo(sourceFile);
 
                 sfd.InitialDirectory = fi.DirectoryName;
                 sfd.FileName = fi.Name.Replace(fi.Extension, ".mdb");
@@ -96,14 +96,14 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
                 sfd.Title = "Select Target File";
                 sfd.RestoreDirectory = true;
 
-                if (sfd.ShowDialog(WindowHandle) == DialogResult.Cancel)
+                if (sfd.ShowDialog(_windowHandle) == DialogResult.Cancel)
                 {
                     Console.WriteLine();
                     Console.WriteLine("Aborted.");
                 }
                 else
                 {
-                    string originalDatabase = Path.Combine(Environment.CurrentDirectory, "DVDProfiler.mdb");
+                    var originalDatabase = Path.Combine(Environment.CurrentDirectory, "DVDProfiler.mdb");
 
                     if (sfd.FileName == originalDatabase)
                     {
@@ -118,10 +118,9 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
             }
         }
 
-        private static void Process(string sourceFile
-            , string targetFile)
+        private static void Process(string sourceFile, string targetFile)
         {
-            DateTime start = DateTime.Now;
+            var start = DateTime.Now;
 
             Console.WriteLine();
             Console.WriteLine("Tranforming data:");
@@ -138,16 +137,15 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
             sqlProcessor.ProgressValueChanged -= OnSqlProcessorProgressValueChanged;
             sqlProcessor.ProgressMaxChanged -= OnSqlProcessorProgressMaxChanged;
 
-            DateTime end = DateTime.Now;
+            var end = DateTime.Now;
 
-            TimeSpan elapsed = new TimeSpan(end.Ticks - start.Ticks);
+            var elapsed = new TimeSpan(end.Ticks - start.Ticks);
 
             Console.WriteLine();
             Console.WriteLine($"Time elapsed: {elapsed.Minutes}m {elapsed.Seconds}s");
         }
 
-        static void OnSqlProcessorProgressMaxChanged(object sender
-            , EventArgs<int> e)
+        private static void OnSqlProcessorProgressMaxChanged(object sender, EventArgs<int> e)
         {
             if (e.Value == 0)
             {
@@ -155,20 +153,19 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
             }
         }
 
-        static void OnSqlProcessorFeedback(object sender
-            , EventArgs<string> e)
-        {
-            Console.WriteLine(e.Value);
-        }
+        private static void OnSqlProcessorFeedback(object sender, EventArgs<string> e) => Console.WriteLine(e.Value);
 
-        static void OnSqlProcessorProgressValueChanged(object sender
-            , EventArgs<int> e)
+        private static void OnSqlProcessorProgressValueChanged(object sender, EventArgs<int> e)
         {
-            int progress = e.Value;
+            var progress = e.Value;
 
             if (progress > 0)
             {
-                if ((progress % 1000) == 0)
+                if ((progress % 100000) == 0)
+                {
+                    Console.Write("#");
+                }
+                else if ((progress % 1000) == 0)
                 {
                     Console.Write("-");
                 }

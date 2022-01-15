@@ -1,10 +1,10 @@
-using System;
-using System.ComponentModel;
-using System.Diagnostics;
-using Profiler = DoenaSoft.DVDProfiler.DVDProfilerXML.Version400;
-
 namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 {
+    using System;
+    using System.ComponentModel;
+    using System.Diagnostics;
+    using Profiler = DVDProfilerXML.Version400;
+
     [ImmutableObject(true)]
     [DebuggerDisplay("{FullName}")]
     internal sealed class TagKey : IEquatable<TagKey>
@@ -17,15 +17,16 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 
         public TagKey(Profiler.Tag tag)
         {
-            FullName = tag.FullName ?? string.Empty;
-            Name = tag.Name;
+            this.FullName = tag.FullName ?? string.Empty;
 
-            _hashCode = FullName.ToLowerInvariant().GetHashCode();
+            this.Name = tag.Name;
+
+            _hashCode = this.FullName.ToLowerInvariant().GetHashCode();
         }
 
         public override int GetHashCode() => _hashCode;
 
-        public override bool Equals(object obj) => Equals(obj as TagKey);
+        public override bool Equals(object obj) => this.Equals(obj as TagKey);
 
         public bool Equals(TagKey other)
         {
@@ -34,7 +35,7 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
                 return false;
             }
 
-            var equals = string.Equals(FullName, other.FullName, StringComparison.InvariantCultureIgnoreCase);
+            var equals = string.Equals(this.FullName, other.FullName, StringComparison.InvariantCultureIgnoreCase);
 
             return equals;
         }

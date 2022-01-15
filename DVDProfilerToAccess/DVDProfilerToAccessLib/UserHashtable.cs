@@ -1,23 +1,16 @@
-using System;
-using DoenaSoft.DVDProfiler.DVDProfilerXML.Version400;
-
 namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 {
+    using Profiler = DVDProfilerXML.Version400;
+
     internal sealed class UserHashtable : Hashtable<UserKey>
     {
-        internal UserHashtable(int capacity)
-            : base(capacity)
+        internal UserHashtable(int capacity) : base(capacity)
         { }
 
-        internal void Add(User user)
-        {
-            Add(new UserKey(user));
-        }
+        internal void Add(Profiler.User user) => this.Add(new UserKey(user));
 
-        internal bool ContainsKey(User user)
-            => (ContainsKey(new UserKey(user)));
+        internal bool ContainsKey(Profiler.User user) => this.ContainsKey(new UserKey(user));
 
-        internal int this[User user]
-            => (base[new UserKey(user)]);
+        internal int this[Profiler.User user] => base[new UserKey(user)];
     }
 }

@@ -1,14 +1,14 @@
-using System;
-
 namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 {
+    using System;
+
     public sealed class EventArgs<T> : EventArgs
     {
-        public T Value { get; private set; }
+        public T Value { get; }
 
         public EventArgs(T value)
         {
-            Value = value;
+            this.Value = value;
         }
     }
 }

@@ -1,32 +1,26 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Text;
-using DoenaSoft.DVDProfiler.DVDProfilerHelper;
-using DoenaSoft.DVDProfiler.DVDProfilerXML.Version400;
-using EPI = DoenaSoft.DVDProfiler.EnhancedPurchaseInfo;
-
-namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
+﻿namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 {
+    using System.Collections.Generic;
+    using System.Text;
+    using DVDProfilerHelper;
+    using EPI = EnhancedPurchaseInfo;
+    using Profiler = DVDProfilerXML.Version400;
+
     internal static class EnhancePurchaseInfoProcessor
     {
-        internal static void GetInsertCommand(List<string> sqlCommands
-            , DVD dvd
-            , PluginData pluginData)
+        internal static void GetInsertCommand(List<string> sqlCommands, Profiler.DVD dvd, Profiler.PluginData pluginData)
         {
             if (pluginData.Any?.Length == 1)
             {
-                EPI.EnhancedPurchaseInfo epi = DVDProfilerSerializer<EPI.EnhancedPurchaseInfo>.FromString(pluginData.Any[0].OuterXml);
+                var epi = DVDProfilerSerializer<EPI.EnhancedPurchaseInfo>.FromString(pluginData.Any[0].OuterXml);
 
                 GetInsertCommand(sqlCommands, dvd, epi);
             }
         }
 
-        private static void GetInsertCommand(List<string> sqlCommands
-            , DVD dvd
-            , EPI.EnhancedPurchaseInfo epi)
+        private static void GetInsertCommand(List<string> sqlCommands, Profiler.DVD dvd, EPI.EnhancedPurchaseInfo epi)
         {
-            StringBuilder insertCommand = new StringBuilder();
+            var insertCommand = new StringBuilder();
 
             insertCommand.Append("INSERT INTO tEnhancedPurchaseInfo VALUES(");
             insertCommand.Append(SqlProcessor.PrepareTextForDb(dvd.ID));
@@ -95,8 +89,7 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
             sqlCommands.Add(insertCommand.ToString());
         }
 
-        private static void GetDate(StringBuilder insertCommand
-            , EPI.Date date)
+        private static void GetDate(StringBuilder insertCommand, EPI.Date date)
         {
             if (date != null)
             {
@@ -108,8 +101,7 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
             }
         }
 
-        private static void GetText(StringBuilder insertCommand
-            , EPI.Text text)
+        private static void GetText(StringBuilder insertCommand, EPI.Text text)
         {
             if (text != null)
             {
@@ -121,8 +113,7 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
             }
         }
 
-        private static void GetPrice(StringBuilder insertCommand
-            , EPI.Price price)
+        private static void GetPrice(StringBuilder insertCommand, EPI.Price price)
         {
             if (price != null)
             {

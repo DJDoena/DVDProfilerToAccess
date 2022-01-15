@@ -1,31 +1,27 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using DoenaSoft.DVDProfiler.DVDProfilerHelper;
-using DoenaSoft.DVDProfiler.DVDProfilerXML.Version400;
-using ET = DoenaSoft.DVDProfiler.EnhancedTitles;
-
-namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
+﻿namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Text;
+    using DVDProfilerHelper;
+    using ET = EnhancedTitles;
+    using Profiler = DVDProfilerXML.Version400;
+
     internal static class EnhancedTitlesProcessor
     {
-        internal static void GetInsertCommand(List<string> sqlCommands
-            , DVD dvd
-            , PluginData pluginData)
+        internal static void GetInsertCommand(List<string> sqlCommands, Profiler.DVD dvd, Profiler.PluginData pluginData)
         {
             if (pluginData.Any?.Length == 1)
             {
-                ET.EnhancedTitles et = DVDProfilerSerializer<ET.EnhancedTitles>.FromString(pluginData.Any[0].OuterXml);
+                var et = DVDProfilerSerializer<ET.EnhancedTitles>.FromString(pluginData.Any[0].OuterXml);
 
                 GetInsertCommand(sqlCommands, dvd, et);
             }
         }
 
-        private static void GetInsertCommand(List<string> sqlCommands
-            , DVD dvd
-            , ET.EnhancedTitles et)
+        private static void GetInsertCommand(List<string> sqlCommands, Profiler.DVD dvd, ET.EnhancedTitles et)
         {
-            StringBuilder insertCommand = new StringBuilder();
+            var insertCommand = new StringBuilder();
 
             insertCommand.Append("INSERT INTO tEnhancedTitles VALUES(");
             insertCommand.Append(SqlProcessor.PrepareTextForDb(dvd.ID));
@@ -54,12 +50,11 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
             sqlCommands.Add(insertCommand.ToString());
         }
 
-        private static void GetTitle(StringBuilder insertCommand
-            , ET.Text text)
+        private static void GetTitle(StringBuilder insertCommand, ET.Text text)
         {
             if (text != null)
             {
-                string title = (string.IsNullOrEmpty(text.Base64Title)) ? (text.Value) : (Encoding.UTF8.GetString(Convert.FromBase64String(text.Base64Title)));
+                var title = (string.IsNullOrEmpty(text.Base64Title)) ? (text.Value) : (Encoding.UTF8.GetString(Convert.FromBase64String(text.Base64Title)));
 
                 insertCommand.Append(SqlProcessor.PrepareOptionalTextForDb(title));
             }

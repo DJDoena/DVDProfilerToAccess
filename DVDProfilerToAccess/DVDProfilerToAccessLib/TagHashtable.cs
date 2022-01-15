@@ -1,23 +1,17 @@
-using System;
-using DoenaSoft.DVDProfiler.DVDProfilerXML.Version400;
-
 namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 {
+    using Profiler = DVDProfilerXML.Version400;
+
     internal sealed class TagHashtable : Hashtable<TagKey>
     {
         internal TagHashtable(int capacity)
             : base(capacity)
         { }
 
-        internal void Add(Tag tag)
-        {
-            Add(new TagKey(tag));
-        }
+        internal void Add(Profiler.Tag tag) => this.Add(new TagKey(tag));
 
-        internal bool ContainsKey(Tag tag)
-            => (ContainsKey(new TagKey(tag)));
+        internal bool ContainsKey(Profiler.Tag tag) => this.ContainsKey(new TagKey(tag));
 
-        internal int this[Tag tag]
-            => (base[new TagKey(tag)]);
+        internal int this[Profiler.Tag tag] => base[new TagKey(tag)];
     }
 }

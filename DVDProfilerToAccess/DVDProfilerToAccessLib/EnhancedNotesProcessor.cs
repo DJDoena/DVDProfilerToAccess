@@ -1,31 +1,27 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using DoenaSoft.DVDProfiler.DVDProfilerHelper;
-using DoenaSoft.DVDProfiler.DVDProfilerXML.Version400;
-using EN = DoenaSoft.DVDProfiler.EnhancedNotes;
-
-namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
+﻿namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Text;
+    using DVDProfilerHelper;
+    using EN = EnhancedNotes;
+    using Profiler = DVDProfilerXML.Version400;
+
     internal static class EnhancedNotesProcessor
     {
-        internal static void GetInsertEnhancedNotesCommand(List<string> sqlCommands
-            , DVD dvd
-            , PluginData pluginData)
+        internal static void GetInsertEnhancedNotesCommand(List<string> sqlCommands, Profiler.DVD dvd, Profiler.PluginData pluginData)
         {
             if (pluginData.Any?.Length == 1)
             {
-                EN.EnhancedNotes en = DVDProfilerSerializer<EN.EnhancedNotes>.FromString(pluginData.Any[0].OuterXml);
+                var en = DVDProfilerSerializer<EN.EnhancedNotes>.FromString(pluginData.Any[0].OuterXml);
 
                 GetInsertCommand(sqlCommands, dvd, en);
             }
         }
 
-        private static void GetInsertCommand(List<string> sqlCommands
-            , DVD dvd
-            , EN.EnhancedNotes en)
+        private static void GetInsertCommand(List<string> sqlCommands, Profiler.DVD dvd, EN.EnhancedNotes en)
         {
-            StringBuilder insertCommand = new StringBuilder();
+            var insertCommand = new StringBuilder();
 
             insertCommand.Append("INSERT INTO tEnhancedNotes VALUES(");
             insertCommand.Append(SqlProcessor.PrepareTextForDb(dvd.ID));
@@ -54,12 +50,11 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
             sqlCommands.Add(insertCommand.ToString());
         }
 
-        private static void GetNote(StringBuilder insertCommand
-            , EN.Text text)
+        private static void GetNote(StringBuilder insertCommand, EN.Text text)
         {
             if (text != null)
             {
-                string note = (string.IsNullOrEmpty(text.Base64Note)) ? (text.Value) : (Encoding.UTF8.GetString(Convert.FromBase64String(text.Base64Note)));
+                var note = (string.IsNullOrEmpty(text.Base64Note)) ? (text.Value) : (Encoding.UTF8.GetString(Convert.FromBase64String(text.Base64Note)));
 
                 insertCommand.Append(SqlProcessor.PrepareOptionalTextForDb(note));
                 insertCommand.Append(", ");

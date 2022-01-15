@@ -1,18 +1,18 @@
-using System;
-using System.Collections.Generic;
-using System.Data.OleDb;
-using System.Globalization;
-using System.IO;
-using System.Reflection;
-using System.Text;
-using System.Xml;
-using System.Xml.Serialization;
-using DoenaSoft.DVDProfiler.DVDProfilerHelper;
-using DoenaSoft.DVDProfiler.DVDProfilerXML;
-using DoenaSoft.DVDProfiler.DVDProfilerXML.Version400;
-
 namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Data.OleDb;
+    using System.Globalization;
+    using System.IO;
+    using System.Reflection;
+    using System.Text;
+    using System.Xml;
+    using System.Xml.Serialization;
+    using DVDProfilerHelper;
+    using DVDProfilerXML;
+    using Profiler = DVDProfilerXML.Version400;
+
     public sealed class SqlProcessor
     {
         #region Fields
@@ -21,66 +21,67 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 
         internal const string NULL = "NULL";
 
-        private static SqlProcessor s_Instance;
+        private static readonly SqlProcessor _instance;
 
-        internal int IdCounter = 1;
+        internal int IdCounter { get; set; }
 
-        private Hashtable<string> AudioChannelsHash;
+        private Hashtable<string> _audioChannelsHash;
 
-        private Hashtable<string> AudioContentHash;
+        private Hashtable<string> _audioContentHash;
 
-        private Hashtable<string> AudioFormatHash;
+        private Hashtable<string> _audioFormatHash;
 
-        private Hashtable<string> CaseTypeHash;
+        private Hashtable<string> _caseTypeHash;
 
-        private CollectionTypeHashtable CollectionTypeHash;
+        private CollectionTypeHashtable _collectionTypeHash;
 
-        private Hashtable<EventType> EventTypeHash;
+        private Hashtable<Profiler.EventType> _eventTypeHash;
 
-        private Hashtable<DVDID_Type> DVDIdTypeHash;
+        private Hashtable<Profiler.DVDID_Type> _dVDIdTypeHash;
 
-        private Hashtable<VideoStandard> VideoStandardHash;
+        private Hashtable<Profiler.VideoStandard> _videoStandardHash;
 
-        private Hashtable<string> GenreHash;
+        private Hashtable<string> _genreHash;
 
-        private Hashtable<string> SubtitleHash;
+        private Hashtable<string> _subtitleHash;
 
-        private Hashtable<string> MediaTypeHash;
+        private Hashtable<string> _mediaTypeHash;
 
-        private PersonHashtable CastAndCrewHash;
+        private PersonHashtable _castAndCrewHash;
 
-        private Hashtable<string> StudioAndMediaCompanyHash;
+        private Hashtable<string> _studioAndMediaCompanyHash;
 
-        private TagHashtable TagHash;
+        private TagHashtable _tagHash;
 
-        private UserHashtable UserHash;
+        private UserHashtable _userHash;
 
-        private Hashtable<CategoryRestriction> LinkCategoryHash;
+        private Hashtable<Profiler.CategoryRestriction> _linkCategoryHash;
 
-        private Hashtable<string> CountryOfOriginHash;
+        private Hashtable<string> _countryOfOriginHash;
 
-        private Hashtable<string> LocalityHash;
+        private Hashtable<string> _localityHash;
 
-        private PluginHashtable PluginHash;
+        private PluginHashtable _pluginHash;
 
-        private Collection Collection;
+        private Profiler.Collection _collection;
 
-        private OleDbCommand Command;
+        private OleDbCommand _command;
 
         #endregion
 
         static SqlProcessor()
         {
-            s_Instance = new SqlProcessor();
+            _instance = new SqlProcessor();
 
             FormatInfo = CultureInfo.GetCultureInfo("en-US").NumberFormat;
         }
 
         private SqlProcessor()
-        { }
+        {
+            this.IdCounter = 1;
+        }
 
-        public static SqlProcessor Instance
-            => (s_Instance);
+        public static SqlProcessor Instance => _instance;
 
         internal static NumberFormatInfo FormatInfo { get; }
 
@@ -90,29 +91,22 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 
         public event EventHandler<EventArgs<string>> Feedback;
 
-        public ExceptionXml Process(string sourceFile
-            , string targetFile)
+        public ExceptionXml Process(string sourceFile, string targetFile)
         {
-            OleDbConnection connection = null;
-
-            OleDbTransaction transaction = null;
-
-            ExceptionXml exceptionXml = null;
-
             try
             {
                 //Phase 2: Fill Hashtables
-                DVDIdTypeHash = FillStaticHash<DVDID_Type>();
+                _dVDIdTypeHash = this.FillStaticHash<Profiler.DVDID_Type>();
 
-                EventTypeHash = FillStaticHash<EventType>();
+                _eventTypeHash = this.FillStaticHash<Profiler.EventType>();
 
-                VideoStandardHash = FillStaticHash<VideoStandard>();
+                _videoStandardHash = this.FillStaticHash<Profiler.VideoStandard>();
 
-                LinkCategoryHash = FillStaticHash<CategoryRestriction>();
+                _linkCategoryHash = this.FillStaticHash<Profiler.CategoryRestriction>();
 
-                Collection = DVDProfilerSerializer<Collection>.Deserialize(sourceFile);
+                _collection = DVDProfilerSerializer<Profiler.Collection>.Deserialize(sourceFile);
 
-                FillDynamicHash();
+                this.FillDynamicHash();
 
                 if (File.Exists(targetFile))
                 {
@@ -121,68 +115,77 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 
                 File.Copy("DVDProfiler.mdb", targetFile);
                 File.SetAttributes(targetFile, FileAttributes.Normal | FileAttributes.Archive);
+            }
+            catch (Exception exception)
+            {
+                Feedback?.Invoke(this, new EventArgs<string>($"Error: {exception.Message} "));
 
-                using (connection = new OleDbConnection("Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" + targetFile + ";Persist Security Info=True"))
+                var exceptionXml = new ExceptionXml(exception);
+
+                return exceptionXml;
+            }
+
+            OleDbConnection connection = null;
+            OleDbTransaction transaction = null;
+            try
+            {
+                connection = new OleDbConnection("Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" + targetFile + ";Persist Security Info=True");
+
+                connection.Open();
+
+                transaction = connection.BeginTransaction();
+
+                using (_command = connection.CreateCommand())
                 {
-                    connection.Open();
+                    _command.Transaction = transaction;
 
-                    using (transaction = connection.BeginTransaction())
-                    {
-                        using (Command = connection.CreateCommand())
-                        {
-                            Command.Transaction = transaction;
+                    this.CheckDBVersion();
 
-                            CheckDBVersion();
+                    //Phase 3: Fill Basic Data Into Database
+                    this.InsertBaseData(_localityHash, "tLocality");
+                    this.InsertBaseData(_dVDIdTypeHash, "tDVDIdType");
+                    this.InsertBaseData(_audioChannelsHash, "tAudioChannels");
+                    this.InsertBaseData(_audioContentHash, "tAudioContent");
+                    this.InsertBaseData(_audioFormatHash, "tAudioFormat");
+                    this.InsertBaseData(_caseTypeHash, "tCaseType");
+                    this.InsertBaseData(_collectionTypeHash, "tCollectionType");
+                    this.InsertBaseData(_eventTypeHash, "tEventType");
+                    this.InsertBaseData(_videoStandardHash, "tVideoStandard");
+                    this.InsertBaseData(_genreHash, "tGenre");
+                    this.InsertBaseData(_subtitleHash, "tSubtitle");
+                    this.InsertBaseData(_mediaTypeHash, "tMediaType");
+                    this.InsertBaseData(_castAndCrewHash, "tCastAndCrew");
+                    this.InsertBaseData(_linkCategoryHash, "tLinkCategory");
+                    this.InsertBaseData(_countryOfOriginHash, "tCountryOfOrigin");
 
-                            //Phase 3: Fill Basic Data Into Database
-                            InsertBaseData(LocalityHash, "tLocality");
-                            InsertBaseData(DVDIdTypeHash, "tDVDIdType");
-                            InsertBaseData(AudioChannelsHash, "tAudioChannels");
-                            InsertBaseData(AudioContentHash, "tAudioContent");
-                            InsertBaseData(AudioFormatHash, "tAudioFormat");
-                            InsertBaseData(CaseTypeHash, "tCaseType");
-                            InsertBaseData(CollectionTypeHash, "tCollectionType");
-                            InsertBaseData(EventTypeHash, "tEventType");
-                            InsertBaseData(VideoStandardHash, "tVideoStandard");
-                            InsertBaseData(GenreHash, "tGenre");
-                            InsertBaseData(SubtitleHash, "tSubtitle");
-                            InsertBaseData(MediaTypeHash, "tMediaType");
-                            InsertBaseData(CastAndCrewHash, "tCastAndCrew");
-                            InsertBaseData(LinkCategoryHash, "tLinkCategory");
-                            InsertBaseData(CountryOfOriginHash, "tCountryOfOrigin");
+                    this.InsertBaseData();
 
-                            InsertBaseData();
-
-                            //Phase 4: Fill DVDs into Database
-                            InsertData();
-
-                            //Phase 5: Save & Exit
-                            transaction.Commit();
-                        }
-                    }
-
-                    connection.Close();
+                    //Phase 4: Fill Profiler.DVDs into Database
+                    this.InsertData();
                 }
 
-                if (Collection.DVDList != null)
-                {
-                    Feedback?.Invoke(this, new EventArgs<string>($"{Collection.DVDList.Length:#,##0} profiles transformed."));
-                }
+                //Phase 5: Save & Exit
+                transaction.Commit();
 
-                Feedback?.Invoke(this, new EventArgs<string>($"{IdCounter:#,##0} database entries created."));
+                connection.Close();
+
+                transaction.Dispose();
+
+                connection.Dispose();
             }
             catch (Exception exception)
             {
                 try
                 {
-                    transaction.Rollback();
+                    transaction?.Rollback();
                 }
                 catch
                 { }
+
                 try
 
                 {
-                    connection.Close();
+                    connection?.Close();
                 }
                 catch
                 { }
@@ -199,18 +202,19 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 
                 Feedback?.Invoke(this, new EventArgs<string>($"Error: {exception.Message} "));
 
-                exceptionXml = new ExceptionXml(exception);
+                var exceptionXml = new ExceptionXml(exception);
+
+                return exceptionXml;
             }
 
-            return (exceptionXml);
+            return null;
         }
 
         #region Fill...Hash
 
-        private Hashtable<T> FillStaticHash<T>()
-            where T : struct
+        private Hashtable<T> FillStaticHash<T>() where T : struct
         {
-            FieldInfo[] fieldInfos = typeof(T).GetFields(BindingFlags.Public | BindingFlags.Static);
+            var fieldInfos = typeof(T).GetFields(BindingFlags.Public | BindingFlags.Static);
 
             if (fieldInfos?.Length > 0)
             {
@@ -218,363 +222,360 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 
                 foreach (FieldInfo fieldInfo in fieldInfos)
                 {
-                    hash.Add((T)(fieldInfo.GetRawConstantValue()));
+                    hash.Add((T)fieldInfo.GetRawConstantValue());
                 }
 
-                return (hash);
+                return hash;
             }
             else
             {
-                return (new Hashtable<T>(0));
+                return new Hashtable<T>(0);
             }
         }
 
         private void FillDynamicHash()
         {
-            InitializeHashes();
+            this.InitializeHashes();
 
-            if (Collection.DVDList?.Length > 0)
+            if (_collection.DVDList?.Length > 0)
             {
 
-                foreach (DVD dvd in Collection.DVDList)
+                foreach (var dvd in _collection.DVDList)
                 {
                     if (string.IsNullOrEmpty(dvd.ID))
                     {
                         continue;
                     }
 
-                    FillLocalityHash(dvd);
+                    this.FillLocalityHash(dvd);
 
-                    FillCollectionTypeHash(dvd);
+                    this.FillCollectionTypeHash(dvd);
 
-                    FillCastHash(dvd);
+                    this.FillCastHash(dvd);
 
-                    FillCrewHash(dvd);
+                    this.FillCrewHash(dvd);
 
-                    FillUserHashFromLoanInfo(dvd);
+                    this.FillUserHashFromLoanInfo(dvd);
 
-                    FillUserHashFromEvents(dvd);
+                    this.FillUserHashFromEvents(dvd);
 
-                    FillStudioHash(dvd);
+                    this.FillStudioHash(dvd);
 
-                    FillMediaCompanyHash(dvd);
+                    this.FillMediaCompanyHash(dvd);
 
-                    FillTagHash(dvd);
+                    this.FillTagHash(dvd);
 
-                    FillAudioHashes(dvd);
+                    this.FillAudioHashes(dvd);
 
-                    FillCaseTypeHash(dvd);
+                    this.FillCaseTypeHash(dvd);
 
-                    FillGenreHash(dvd);
+                    this.FillGenreHash(dvd);
 
-                    FillSubtitleHash(dvd);
+                    this.FillSubtitleHash(dvd);
 
-                    FillMediaTypeHash(dvd);
+                    this.FillMediaTypeHash(dvd);
 
-                    FillCountryOfOriginHash(dvd);
+                    this.FillCountryOfOriginHash(dvd);
 
-                    FillPluginHash(dvd);
+                    this.FillPluginHash(dvd);
                 }
 
-                foreach (DVD dvd in Collection.DVDList)
+                foreach (var dvd in _collection.DVDList)
                 {
                     //second iteration for data that is less complete
-                    FillUserHashFromPurchaseInfo(dvd);
+                    this.FillUserHashFromPurchaseInfo(dvd);
                 }
             }
         }
 
         private void InitializeHashes()
         {
-            LocalityHash = new Hashtable<string>(5);
+            _localityHash = new Hashtable<string>(5);
 
-            CollectionTypeHash = new CollectionTypeHashtable(5);
+            _collectionTypeHash = new CollectionTypeHashtable(5);
 
-            CastAndCrewHash = new PersonHashtable(Collection.DVDList.Length * 50);
+            _castAndCrewHash = new PersonHashtable(_collection.DVDList.Length * 50);
 
-            StudioAndMediaCompanyHash = new Hashtable<string>(100);
+            _studioAndMediaCompanyHash = new Hashtable<string>(100);
 
-            AudioChannelsHash = new Hashtable<string>(20);
+            _audioChannelsHash = new Hashtable<string>(20);
 
-            AudioContentHash = new Hashtable<string>(20);
+            _audioContentHash = new Hashtable<string>(20);
 
-            AudioFormatHash = new Hashtable<string>(20);
+            _audioFormatHash = new Hashtable<string>(20);
 
-            CaseTypeHash = new Hashtable<string>(20);
+            _caseTypeHash = new Hashtable<string>(20);
 
-            TagHash = new TagHashtable(50);
+            _tagHash = new TagHashtable(50);
 
-            UserHash = new UserHashtable(20);
+            _userHash = new UserHashtable(20);
 
-            GenreHash = new Hashtable<string>(30);
+            _genreHash = new Hashtable<string>(30);
 
-            SubtitleHash = new Hashtable<string>(30);
+            _subtitleHash = new Hashtable<string>(30);
 
-            MediaTypeHash = new Hashtable<string>(5);
+            _mediaTypeHash = new Hashtable<string>(5);
 
-            CountryOfOriginHash = new Hashtable<string>(20);
+            _countryOfOriginHash = new Hashtable<string>(20);
 
-            PluginHash = new PluginHashtable(5);
+            _pluginHash = new PluginHashtable(5);
         }
 
-        private void FillUserHashFromPurchaseInfo(DVD dvd)
+        private void FillUserHashFromPurchaseInfo(Profiler.DVD dvd)
         {
             if (dvd.PurchaseInfo?.GiftFrom != null)
             {
-                if ((string.IsNullOrEmpty(dvd.PurchaseInfo.GiftFrom.FirstName) == false)
-                    || (string.IsNullOrEmpty(dvd.PurchaseInfo.GiftFrom.LastName) == false))
+                if (!string.IsNullOrEmpty(dvd.PurchaseInfo.GiftFrom.FirstName)
+                    || !string.IsNullOrEmpty(dvd.PurchaseInfo.GiftFrom.LastName))
                 {
-                    User user = new User(dvd.PurchaseInfo.GiftFrom);
+                    var user = new Profiler.User(dvd.PurchaseInfo.GiftFrom);
 
-                    if (UserHash.ContainsKey(user) == false)
+                    if (!_userHash.ContainsKey(user))
                     {
-                        UserHash.Add(user);
+                        _userHash.Add(user);
                     }
                 }
             }
         }
 
-        private void FillPluginHash(DVD dvd)
+        private void FillPluginHash(Profiler.DVD dvd)
         {
             if (dvd.PluginCustomData?.Length > 0)
             {
-                foreach (PluginData pluginData in dvd.PluginCustomData)
+                foreach (var pluginData in dvd.PluginCustomData)
                 {
-                    if ((pluginData != null) && (PluginHash.ContainsKey(pluginData) == false))
+                    if (pluginData != null && !_pluginHash.ContainsKey(pluginData))
                     {
-                        PluginHash.Add(pluginData);
+                        _pluginHash.Add(pluginData);
                     }
                 }
             }
         }
 
-        private void FillCountryOfOriginHash(DVD dvd)
+        private void FillCountryOfOriginHash(Profiler.DVD dvd)
         {
-            if ((string.IsNullOrEmpty(dvd.CountryOfOrigin) == false) && (CountryOfOriginHash.ContainsKey(dvd.CountryOfOrigin) == false))
+            if (!string.IsNullOrEmpty(dvd.CountryOfOrigin) && !_countryOfOriginHash.ContainsKey(dvd.CountryOfOrigin))
             {
-                CountryOfOriginHash.Add(dvd.CountryOfOrigin);
+                _countryOfOriginHash.Add(dvd.CountryOfOrigin);
             }
 
-            if ((string.IsNullOrEmpty(dvd.CountryOfOrigin2) == false) && (CountryOfOriginHash.ContainsKey(dvd.CountryOfOrigin2) == false))
+            if (!string.IsNullOrEmpty(dvd.CountryOfOrigin2) && !_countryOfOriginHash.ContainsKey(dvd.CountryOfOrigin2))
             {
-                CountryOfOriginHash.Add(dvd.CountryOfOrigin2);
+                _countryOfOriginHash.Add(dvd.CountryOfOrigin2);
             }
 
-            if ((string.IsNullOrEmpty(dvd.CountryOfOrigin3) == false) && (CountryOfOriginHash.ContainsKey(dvd.CountryOfOrigin3) == false))
+            if (!string.IsNullOrEmpty(dvd.CountryOfOrigin3) && !_countryOfOriginHash.ContainsKey(dvd.CountryOfOrigin3))
             {
-                CountryOfOriginHash.Add(dvd.CountryOfOrigin3);
+                _countryOfOriginHash.Add(dvd.CountryOfOrigin3);
             }
         }
 
-        private void FillMediaTypeHash(DVD dvd)
+        private void FillMediaTypeHash(Profiler.DVD dvd)
         {
             if (dvd.MediaTypes != null)
             {
-                if ((dvd.MediaTypes.DVD) && (MediaTypeHash.ContainsKey("DVD") == false))
+                if (dvd.MediaTypes.DVD && !_mediaTypeHash.ContainsKey("DVD"))
                 {
-                    MediaTypeHash.Add("DVD");
+                    _mediaTypeHash.Add("DVD");
                 }
 
-                if ((dvd.MediaTypes.BluRay) && (MediaTypeHash.ContainsKey("Blu-ray") == false))
+                if (dvd.MediaTypes.BluRay && !_mediaTypeHash.ContainsKey("Blu-ray"))
                 {
-                    MediaTypeHash.Add("Blu-ray");
+                    _mediaTypeHash.Add("Blu-ray");
                 }
 
-                if ((dvd.MediaTypes.HDDVD) && (MediaTypeHash.ContainsKey("HD-DVD") == false))
+                if (dvd.MediaTypes.HDDVD && !_mediaTypeHash.ContainsKey("HD-DVD"))
                 {
-                    MediaTypeHash.Add("HD-DVD");
+                    _mediaTypeHash.Add("HD-DVD");
                 }
 
-                if ((dvd.MediaTypes.UltraHD) && (MediaTypeHash.ContainsKey("Ultra HD") == false))
+                if (dvd.MediaTypes.UltraHD && !_mediaTypeHash.ContainsKey("Ultra HD"))
                 {
-                    MediaTypeHash.Add("Ultra HD");
+                    _mediaTypeHash.Add("Ultra HD");
                 }
 
-                if ((string.IsNullOrEmpty(dvd.MediaTypes.CustomMediaType) == false)
-                    && (MediaTypeHash.ContainsKey(dvd.MediaTypes.CustomMediaType) == false))
+                if (!string.IsNullOrEmpty(dvd.MediaTypes.CustomMediaType)
+                    && !_mediaTypeHash.ContainsKey(dvd.MediaTypes.CustomMediaType))
                 {
-                    MediaTypeHash.Add(dvd.MediaTypes.CustomMediaType);
+                    _mediaTypeHash.Add(dvd.MediaTypes.CustomMediaType);
                 }
             }
         }
 
-        private void FillSubtitleHash(DVD dvd)
+        private void FillSubtitleHash(Profiler.DVD dvd)
         {
             if (dvd.SubtitleList?.Length > 0)
             {
-                foreach (string subtitle in dvd.SubtitleList)
+                foreach (var subtitle in dvd.SubtitleList)
                 {
-                    if ((string.IsNullOrEmpty(subtitle) == false) && (SubtitleHash.ContainsKey(subtitle) == false))
+                    if (!string.IsNullOrEmpty(subtitle) && !_subtitleHash.ContainsKey(subtitle))
                     {
-                        SubtitleHash.Add(subtitle);
+                        _subtitleHash.Add(subtitle);
                     }
                 }
             }
         }
 
-        private void FillGenreHash(DVD dvd)
+        private void FillGenreHash(Profiler.DVD dvd)
         {
             if (dvd.GenreList?.Length > 0)
             {
-                foreach (string genre in dvd.GenreList)
+                foreach (var genre in dvd.GenreList)
                 {
-                    if ((string.IsNullOrEmpty(genre) == false) && (GenreHash.ContainsKey(genre) == false))
+                    if (!string.IsNullOrEmpty(genre) && !_genreHash.ContainsKey(genre))
                     {
-                        GenreHash.Add(genre);
+                        _genreHash.Add(genre);
                     }
                 }
             }
         }
 
-        private void FillCaseTypeHash(DVD dvd)
+        private void FillCaseTypeHash(Profiler.DVD dvd)
         {
-            if (string.IsNullOrEmpty(dvd.CaseType) == false)
+            if (!string.IsNullOrEmpty(dvd.CaseType))
             {
-                if (CaseTypeHash.ContainsKey(dvd.CaseType) == false)
+                if (!_caseTypeHash.ContainsKey(dvd.CaseType))
                 {
-                    CaseTypeHash.Add(dvd.CaseType);
+                    _caseTypeHash.Add(dvd.CaseType);
                 }
             }
         }
 
-        private void FillAudioHashes(DVD dvd)
+        private void FillAudioHashes(Profiler.DVD dvd)
         {
             if (dvd.AudioList?.Length > 0)
             {
-                foreach (AudioTrack audioTrack in dvd.AudioList)
+                foreach (var audioTrack in dvd.AudioList)
                 {
-                    if (AudioContentHash.ContainsKey(audioTrack.Content) == false)
+                    if (!_audioContentHash.ContainsKey(audioTrack.Content))
                     {
-                        AudioContentHash.Add(audioTrack.Content);
+                        _audioContentHash.Add(audioTrack.Content);
                     }
 
-                    if (AudioFormatHash.ContainsKey(audioTrack.Format) == false)
+                    if (!_audioFormatHash.ContainsKey(audioTrack.Format))
                     {
-                        AudioFormatHash.Add(audioTrack.Format);
+                        _audioFormatHash.Add(audioTrack.Format);
                     }
 
-                    if (AudioChannelsHash.ContainsKey(audioTrack.Channels) == false)
+                    if (!_audioChannelsHash.ContainsKey(audioTrack.Channels))
                     {
-                        AudioChannelsHash.Add(audioTrack.Channels);
+                        _audioChannelsHash.Add(audioTrack.Channels);
                     }
 
                 }
             }
         }
 
-        private void FillTagHash(DVD dvd)
+        private void FillTagHash(Profiler.DVD dvd)
         {
             if (dvd.TagList?.Length > 0)
             {
-                foreach (Tag tag in dvd.TagList)
+                foreach (var tag in dvd.TagList)
                 {
-                    if (TagHash.ContainsKey(tag) == false)
+                    if (_tagHash.ContainsKey(tag) == false)
                     {
-                        TagHash.Add(tag);
+                        _tagHash.Add(tag);
                     }
                 }
             }
         }
 
-        private void FillMediaCompanyHash(DVD dvd)
+        private void FillMediaCompanyHash(Profiler.DVD dvd)
         {
             if (dvd.MediaCompanyList?.Length > 0)
             {
-                foreach (string distributor in dvd.MediaCompanyList)
+                foreach (var distributor in dvd.MediaCompanyList)
                 {
-                    if (StudioAndMediaCompanyHash.ContainsKey(distributor) == false)
+                    if (!_studioAndMediaCompanyHash.ContainsKey(distributor))
                     {
-                        StudioAndMediaCompanyHash.Add(distributor);
+                        _studioAndMediaCompanyHash.Add(distributor);
                     }
                 }
             }
         }
 
-        private void FillStudioHash(DVD dvd)
+        private void FillStudioHash(Profiler.DVD dvd)
         {
             if (dvd.StudioList?.Length > 0)
             {
-                foreach (string studio in dvd.StudioList)
+                foreach (var studio in dvd.StudioList)
                 {
-                    if (StudioAndMediaCompanyHash.ContainsKey(studio) == false)
+                    if (!_studioAndMediaCompanyHash.ContainsKey(studio))
                     {
-                        StudioAndMediaCompanyHash.Add(studio);
+                        _studioAndMediaCompanyHash.Add(studio);
                     }
                 }
             }
         }
 
-        private void FillUserHashFromEvents(DVD dvd)
+        private void FillUserHashFromEvents(Profiler.DVD dvd)
         {
             if (dvd.EventList?.Length > 0)
             {
-                foreach (Event myEvent in dvd.EventList)
+                foreach (var myEvent in dvd.EventList)
                 {
-                    if (UserHash.ContainsKey(myEvent.User) == false)
+                    if (!_userHash.ContainsKey(myEvent.User))
                     {
-                        UserHash.Add(myEvent.User);
+                        _userHash.Add(myEvent.User);
                     }
                 }
             }
         }
 
-        private void FillUserHashFromLoanInfo(DVD dvd)
+        private void FillUserHashFromLoanInfo(Profiler.DVD dvd)
         {
             if (dvd.LoanInfo?.User != null)
             {
-                if (UserHash.ContainsKey(dvd.LoanInfo.User) == false)
+                if (!_userHash.ContainsKey(dvd.LoanInfo.User))
                 {
-                    UserHash.Add(dvd.LoanInfo.User);
+                    _userHash.Add(dvd.LoanInfo.User);
                 }
             }
         }
 
-        private void FillCrewHash(DVD dvd)
+        private void FillCrewHash(Profiler.DVD dvd)
         {
             if (dvd.CrewList?.Length > 0)
             {
-                foreach (object possibleCrew in dvd.CrewList)
+                foreach (var possibleCrew in dvd.CrewList)
                 {
-                    FillDynamicHash<CrewMember>(CastAndCrewHash, possibleCrew);
+                    this.FillDynamicHash<Profiler.CrewMember>(_castAndCrewHash, possibleCrew);
                 }
             }
         }
 
-        private void FillCastHash(DVD dvd)
+        private void FillCastHash(Profiler.DVD dvd)
         {
             if (dvd.CastList?.Length > 0)
             {
-                foreach (object possibleCast in dvd.CastList)
+                foreach (var possibleCast in dvd.CastList)
                 {
-                    FillDynamicHash<CastMember>(CastAndCrewHash, possibleCast);
+                    this.FillDynamicHash<Profiler.CastMember>(_castAndCrewHash, possibleCast);
                 }
             }
         }
 
-        private void FillCollectionTypeHash(DVD dvd)
+        private void FillCollectionTypeHash(Profiler.DVD dvd)
         {
-            if (CollectionTypeHash.ContainsKey(dvd.CollectionType) == false)
+            if (!_collectionTypeHash.ContainsKey(dvd.CollectionType))
             {
-                CollectionTypeHash.Add(dvd.CollectionType);
+                _collectionTypeHash.Add(dvd.CollectionType);
             }
         }
 
-        private void FillLocalityHash(DVD dvd)
+        private void FillLocalityHash(Profiler.DVD dvd)
         {
-            if (LocalityHash.ContainsKey(dvd.ID_LocalityDesc) == false)
+            if (!_localityHash.ContainsKey(dvd.ID_LocalityDesc))
             {
-                LocalityHash.Add(dvd.ID_LocalityDesc);
+                _localityHash.Add(dvd.ID_LocalityDesc);
             }
         }
 
-        private void FillDynamicHash<T>(PersonHashtable personHash, object possiblePerson)
-            where T : class, IPerson
+        private void FillDynamicHash<T>(PersonHashtable personHash, object possiblePerson) where T : class, IPerson
         {
-            T person = possiblePerson as T;
-
-            if (person != null)
+            if (possiblePerson is T person)
             {
-                if (personHash.ContainsKey(person) == false)
+                if (!personHash.ContainsKey(person))
                 {
                     personHash.Add(person);
                 }
@@ -587,41 +588,39 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 
         private void GetInsertPluginDataCommands(List<string> sqlCommands)
         {
-            foreach (KeyValuePair<PluginDataKey, int> keyValue in PluginHash)
+            foreach (var keyValue in _pluginHash)
             {
-                GetInsertPluginDataCommand(sqlCommands, keyValue);
+                this.GetInsertPluginDataCommand(sqlCommands, keyValue);
             }
         }
 
         private void GetInsertTagCommands(List<string> sqlCommands)
         {
-            foreach (KeyValuePair<TagKey, int> keyValue in TagHash)
+            foreach (var keyValue in _tagHash)
             {
-                GetInsertTagCommand(sqlCommands, keyValue);
+                this.GetInsertTagCommand(sqlCommands, keyValue);
             }
         }
 
         private void GetInsertStudioAndMediaCompanyCommands(List<string> sqlCommands)
         {
-            foreach (KeyValuePair<string, int> keyValue in StudioAndMediaCompanyHash)
+            foreach (var keyValue in _studioAndMediaCompanyHash)
             {
-                GetInsertStudioAndMediaCompanyCommand(sqlCommands, keyValue);
+                this.GetInsertStudioAndMediaCompanyCommand(sqlCommands, keyValue);
             }
         }
 
         private void GetInsertUserCommands(List<string> sqlCommands)
         {
-            foreach (KeyValuePair<UserKey, int> keyValue in UserHash)
+            foreach (var keyValue in _userHash)
             {
-                GetInsertUserCommand(sqlCommands, keyValue);
+                this.GetInsertUserCommand(sqlCommands, keyValue);
             }
         }
 
-        private void GetInsertPluginDataCommand(List<string> sqlCommands
-            , KeyValuePair<PluginDataKey, int> keyValue)
+        private void GetInsertPluginDataCommand(List<string> sqlCommands, KeyValuePair<PluginDataKey, int> keyValue)
         {
-
-            StringBuilder insertCommand = new StringBuilder();
+            var insertCommand = new StringBuilder();
 
             insertCommand.Append("INSERT INTO tPluginData VALUES (");
             insertCommand.Append(keyValue.Value.ToString());
@@ -634,10 +633,9 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
             sqlCommands.Add(insertCommand.ToString());
         }
 
-        private void GetInsertTagCommand(List<string> sqlCommands
-            , KeyValuePair<TagKey, int> keyValue)
+        private void GetInsertTagCommand(List<string> sqlCommands, KeyValuePair<TagKey, int> keyValue)
         {
-            StringBuilder insertCommand = new StringBuilder();
+            var insertCommand = new StringBuilder();
 
             insertCommand.Append("INSERT INTO tTag VALUES (");
             insertCommand.Append(keyValue.Value.ToString());
@@ -650,10 +648,9 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
             sqlCommands.Add(insertCommand.ToString());
         }
 
-        private void GetInsertStudioAndMediaCompanyCommand(List<string> sqlCommands
-            , KeyValuePair<string, int> keyValue)
+        private void GetInsertStudioAndMediaCompanyCommand(List<string> sqlCommands, KeyValuePair<string, int> keyValue)
         {
-            StringBuilder insertCommand = new StringBuilder();
+            var insertCommand = new StringBuilder();
 
             insertCommand.Append("INSERT INTO tStudioAndMediaCompany VALUES (");
             insertCommand.Append(keyValue.Value.ToString());
@@ -664,10 +661,9 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
             sqlCommands.Add(insertCommand.ToString());
         }
 
-        private void GetInsertUserCommand(List<string> sqlCommands
-            , KeyValuePair<UserKey, int> keyValue)
+        private void GetInsertUserCommand(List<string> sqlCommands, KeyValuePair<UserKey, int> keyValue)
         {
-            StringBuilder insertCommand = new StringBuilder();
+            var insertCommand = new StringBuilder();
 
             insertCommand.Append("INSERT INTO tUser VALUES (");
             insertCommand.Append(keyValue.Value.ToString());
@@ -684,14 +680,13 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
             sqlCommands.Add(insertCommand.ToString());
         }
 
-        private List<string> GetInsertBaseDataCommands(Hashtable<string> hash
-            , string tableName)
+        private List<string> GetInsertBaseDataCommands(Hashtable<string> hash, string tableName)
         {
-            List<string> sqlCommands = new List<string>(hash.Count);
+            var sqlCommands = new List<string>(hash.Count);
 
-            foreach (KeyValuePair<string, int> keyValue in hash)
+            foreach (var keyValue in hash)
             {
-                StringBuilder insertCommand = new StringBuilder();
+                var insertCommand = new StringBuilder();
 
                 insertCommand.Append("INSERT INTO ");
                 insertCommand.Append(tableName);
@@ -704,18 +699,16 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
                 sqlCommands.Add(insertCommand.ToString());
             }
 
-            return (sqlCommands);
+            return sqlCommands;
         }
 
-        private List<string> GetInsertBaseDataCommands<T>(Hashtable<T> hash
-            , string tableName)
-            where T : struct
+        private List<string> GetInsertBaseDataCommands<T>(Hashtable<T> hash, string tableName) where T : struct
         {
-            List<string> sqlCommands = new List<string>(hash.Count);
+            var sqlCommands = new List<string>(hash.Count);
 
-            foreach (KeyValuePair<T, int> keyValue in hash)
+            foreach (var keyValue in hash)
             {
-                StringBuilder insertCommand = new StringBuilder();
+                var insertCommand = new StringBuilder();
 
                 insertCommand.Append("INSERT INTO ");
                 insertCommand.Append(tableName);
@@ -725,17 +718,15 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 
                 string name = Enum.GetName(typeof(T), keyValue.Key);
 
-                FieldInfo fieldInfo = keyValue.Key.GetType().GetField(name, BindingFlags.Public | BindingFlags.Static);
+                var fieldInfo = keyValue.Key.GetType().GetField(name, BindingFlags.Public | BindingFlags.Static);
 
-                object[] attributes = fieldInfo.GetCustomAttributes(false);
+                var attributes = fieldInfo.GetCustomAttributes(false);
 
                 if (attributes?.Length > 0)
                 {
-                    foreach (object attribute in attributes)
+                    foreach (var attribute in attributes)
                     {
-                        XmlEnumAttribute xmlEnumAttribute = attribute as XmlEnumAttribute;
-
-                        if (xmlEnumAttribute != null)
+                        if (attribute is XmlEnumAttribute xmlEnumAttribute)
                         {
                             name = xmlEnumAttribute.Name;
 
@@ -750,17 +741,16 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
                 sqlCommands.Add(insertCommand.ToString());
             }
 
-            return (sqlCommands);
+            return sqlCommands;
         }
 
-        private List<string> GetInsertBaseDataCommands(PersonHashtable hash
-            , string tableName)
+        private List<string> GetInsertBaseDataCommands(PersonHashtable hash, string tableName)
         {
-            List<string> sqlCommands = new List<string>(hash.Count);
+            var sqlCommands = new List<string>(hash.Count);
 
-            foreach (KeyValuePair<PersonKey, int> keyValue in hash)
+            foreach (var keyValue in hash)
             {
-                StringBuilder insertCommand = new StringBuilder();
+                var insertCommand = new StringBuilder();
 
                 insertCommand.Append("INSERT INTO ");
                 insertCommand.Append(tableName);
@@ -791,17 +781,16 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
                 sqlCommands.Add(insertCommand.ToString());
             }
 
-            return (sqlCommands);
+            return sqlCommands;
         }
 
-        private List<string> GetInsertBaseDataCommands(CollectionTypeHashtable hash
-            , string tableName)
+        private List<string> GetInsertBaseDataCommands(CollectionTypeHashtable hash, string tableName)
         {
-            List<string> sqlCommands = new List<string>(hash.Count);
+            var sqlCommands = new List<string>(hash.Count);
 
-            foreach (KeyValuePair<CollectionType, int> keyValue in hash)
+            foreach (var keyValue in hash)
             {
-                StringBuilder insertCommand = new StringBuilder();
+                var insertCommand = new StringBuilder();
 
                 insertCommand.Append("INSERT INTO ");
                 insertCommand.Append(tableName);
@@ -816,18 +805,43 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
                 sqlCommands.Add(insertCommand.ToString());
             }
 
-            return (sqlCommands);
+            return sqlCommands;
         }
 
-        private List<string> GetInsertDataCommands()
+        private IEnumerable<Dictionary<string, List<string>>> GetInsertDataCommands()
         {
-            if (Collection.DVDList?.Length > 0)
+            if (_collection.DVDList?.Length > 0)
             {
-                Dictionary<string, bool> dvdHash = new Dictionary<string, bool>(Collection.DVDList.Length);
+                var dvdHash = new Dictionary<string, bool>(_collection.DVDList.Length);
 
-                List<string> sqlCommands = new List<string>(Collection.DVDList.Length * 150);
+                var commandGroups = new Dictionary<string, List<string>>()
+                {
+                    { "DVD", new List<string>() },
+                    { "DVDId", new List<string>() },
+                    { "Review", new List<string>() },
+                    { "LoanInfo", new List<string>() },
+                    { "Features", new List<string>() },
+                    { "Format", new List<string>() },
+                    { "Purchase", new List<string>() },
+                    { "Lock", new List<string>() },
+                    { "DVDxMediaType", new List<string>() },
+                    { "DVDxGenre", new List<string>() },
+                    { "DVDxRegion", new List<string>() },
+                    { "DVDxStudio", new List<string>() },
+                    { "DVDxMediaCompany", new List<string>() },
+                    { "DVDxAudio", new List<string>() },
+                    { "DVDxSubtitle", new List<string>() },
+                    { "DVDxCast", new List<string>() },
+                    { "DVDxCrew", new List<string>() },
+                    { "DVDxDisc", new List<string>() },
+                    { "DVDxEvent", new List<string>() },
+                    { "DVDxTag", new List<string>() },
+                    { "DVDxMyLinks", new List<string>() },
+                    { "DVDxPlugin", new List<string>() },
+                    { "DVDxCountryOfOrigin", new List<string>() },
+                };
 
-                foreach (DVD dvd in Collection.DVDList)
+                foreach (var dvd in _collection.DVDList)
                 {
                     if (string.IsNullOrEmpty(dvd.ID))
                     {
@@ -836,163 +850,159 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 
                     dvdHash.Add(dvd.ID, true);
 
-                    GetInsertDVDCommand(sqlCommands, dvd);
+                    this.GetInsertDVDCommand(commandGroups["DVD"], dvd);
 
-                    GetInsertDVDIdCommand(sqlCommands, dvd);
+                    this.GetInsertDVDIdCommand(commandGroups["DVDId"], dvd);
 
-                    GetInsertReviewCommand(sqlCommands, dvd);
+                    this.GetInsertReviewCommand(commandGroups["Review"], dvd);
 
-                    GetInsertLoanInfoCommand(sqlCommands, dvd);
+                    this.GetInsertLoanInfoCommand(commandGroups["LoanInfo"], dvd);
 
-                    GetInsertFeaturesCommand(sqlCommands, dvd);
+                    this.GetInsertFeaturesCommand(commandGroups["Features"], dvd);
 
-                    GetInsertFormatCommand(sqlCommands, dvd);
+                    this.GetInsertFormatCommand(commandGroups["Format"], dvd);
 
-                    GetInsertPurchaseCommand(sqlCommands, dvd);
+                    this.GetInsertPurchaseCommand(commandGroups["Purchase"], dvd);
 
-                    GetInsertLockCommand(sqlCommands, dvd);
+                    this.GetInsertLockCommand(commandGroups["Lock"], dvd);
 
-                    GetInsertDVDxMediaTypeCommands(sqlCommands, dvd);
+                    this.GetInsertDVDxMediaTypeCommands(commandGroups["DVDxMediaType"], dvd);
 
-                    GetInsertDVDxGenreCommands(sqlCommands, dvd);
+                    this.GetInsertDVDxGenreCommands(commandGroups["DVDxGenre"], dvd);
 
-                    GetInsertDVDxRegionCommands(sqlCommands, dvd);
+                    this.GetInsertDVDxRegionCommands(commandGroups["DVDxRegion"], dvd);
 
-                    GetInsertDVDxStudioCommands(sqlCommands, dvd);
+                    this.GetInsertDVDxStudioCommands(commandGroups["DVDxStudio"], dvd);
 
-                    GetInsertDVDxMediaCompanyCommands(sqlCommands, dvd);
+                    this.GetInsertDVDxMediaCompanyCommands(commandGroups["DVDxMediaCompany"], dvd);
 
-                    GetInsertDVDxAudioCommands(sqlCommands, dvd);
+                    this.GetInsertDVDxAudioCommands(commandGroups["DVDxAudio"], dvd);
 
-                    GetInsertDVDxSubtitleCommands(sqlCommands, dvd);
+                    this.GetInsertDVDxSubtitleCommands(commandGroups["DVDxSubtitle"], dvd);
 
-                    GetInsertDVDxCastCommands(sqlCommands, dvd);
+                    this.GetInsertDVDxCastCommands(commandGroups["DVDxCast"], dvd);
 
-                    GetInsertDVDxCrewCommands(sqlCommands, dvd);
+                    this.GetInsertDVDxCrewCommands(commandGroups["DVDxCrew"], dvd);
 
-                    GetInsertDVDxDiscCommands(sqlCommands, dvd);
+                    this.GetInsertDVDxDiscCommands(commandGroups["DVDxDisc"], dvd);
 
-                    GetInsertDVDxEventCommands(sqlCommands, dvd);
+                    this.GetInsertDVDxEventCommands(commandGroups["DVDxEvent"], dvd);
 
-                    GetInsertDVDxTagCommands(sqlCommands, dvd);
+                    this.GetInsertDVDxTagCommands(commandGroups["DVDxTag"], dvd);
 
-                    GetInsertDVDxMyLinksCommands(sqlCommands, dvd);
+                    this.GetInsertDVDxMyLinksCommands(commandGroups["DVDxMyLinks"], dvd);
 
-                    GetInsertDVDxPluginCommands(sqlCommands, dvd);
+                    this.GetInsertDVDxPluginCommands(commandGroups["DVDxPlugin"], dvd);
 
-                    GetInsertDataCommands(sqlCommands, dvd, dvd.CountryOfOrigin);
-                    GetInsertDataCommands(sqlCommands, dvd, dvd.CountryOfOrigin2);
-                    GetInsertDataCommands(sqlCommands, dvd, dvd.CountryOfOrigin3);
+                    this.GetInsertDataCommands(commandGroups["DVDxCountryOfOrigin"], dvd, dvd.CountryOfOrigin);
+                    this.GetInsertDataCommands(commandGroups["DVDxCountryOfOrigin"], dvd, dvd.CountryOfOrigin2);
+                    this.GetInsertDataCommands(commandGroups["DVDxCountryOfOrigin"], dvd, dvd.CountryOfOrigin3);
                 }
 
-                foreach (DVD dvd in Collection.DVDList)
+                yield return commandGroups;
+
+                commandGroups = new Dictionary<string, List<string>>()
                 {
-                    GetUpdateParentDVDIdCommand(sqlCommands, dvdHash, dvd);
+                    { "BoxSetParent", new List<string>(_collection.DVDList.Length) },
+                    { "BoxSetChildren", new List<string>(_collection.DVDList.Length) },
+                };
 
-                    GetInsertDVDxDVDCommands(sqlCommands, dvdHash, dvd);
+                foreach (Profiler.DVD dvd in _collection.DVDList)
+                {
+                    this.GetUpdateParentDVDIdCommand(commandGroups["BoxSetParent"], dvdHash, dvd);
+
+                    this.GetInsertDVDxDVDCommands(commandGroups["BoxSetChildren"], dvdHash, dvd);
                 }
 
-                return (sqlCommands);
-            }
-            else
-            {
-                return (new List<string>(0));
+                yield return commandGroups;
             }
         }
 
-        private void GetInsertDVDxMediaTypeCommands(List<string> sqlCommands
-            , DVD dvd)
+        private void GetInsertDVDxMediaTypeCommands(List<string> sqlCommands, Profiler.DVD dvd)
         {
             if (dvd.MediaTypes != null)
             {
                 if (dvd.MediaTypes.DVD)
                 {
-                    GetInsertDVDxMediaTypeDVDCommand(sqlCommands, dvd);
+                    this.GetInsertDVDxMediaTypeDVDCommand(sqlCommands, dvd);
                 }
 
                 if (dvd.MediaTypes.BluRay)
                 {
-                    GetInsertDVDxMediaTypeBlurayCommand(sqlCommands, dvd);
+                    this.GetInsertDVDxMediaTypeBlurayCommand(sqlCommands, dvd);
                 }
 
                 if (dvd.MediaTypes.HDDVD)
                 {
-                    GetInsertDVDxMediaTypeHDDVDCommand(sqlCommands, dvd);
+                    this.GetInsertDVDxMediaTypeHDDVDCommand(sqlCommands, dvd);
                 }
 
-                if (string.IsNullOrEmpty(dvd.MediaTypes.CustomMediaType) == false)
+                if (!string.IsNullOrEmpty(dvd.MediaTypes.CustomMediaType))
                 {
-                    GetInsertDVDxMediaTypeCustomCommand(sqlCommands, dvd);
+                    this.GetInsertDVDxMediaTypeCustomCommand(sqlCommands, dvd);
                 }
             }
         }
 
-        private void GetInsertDVDxDVDCommands(List<string> sqlCommands
-            , Dictionary<string, bool> dvdHash
-            , DVD dvd)
+        private void GetInsertDVDxDVDCommands(List<string> sqlCommands, Dictionary<string, bool> dvdHash, Profiler.DVD dvd)
         {
             if (dvd.BoxSet.ContentList?.Length > 0)
             {
-                foreach (string dvdId in dvd.BoxSet.ContentList)
+                foreach (var dvdId in dvd.BoxSet.ContentList)
                 {
                     if (dvdHash.ContainsKey(dvdId))
                     {
-                        GetInsertDVDxDVDCommand(sqlCommands, dvd, dvdId);
+                        this.GetInsertDVDxDVDCommand(sqlCommands, dvd, dvdId);
                     }
                 }
             }
         }
 
-        private void GetInsertDVDxMyLinksCommands(List<string> sqlCommands
-            , DVD dvd)
+        private void GetInsertDVDxMyLinksCommands(List<string> sqlCommands, Profiler.DVD dvd)
         {
             if (dvd.MyLinks?.UserLinkList?.Length > 0)
             {
-                foreach (UserLink userLink in dvd.MyLinks.UserLinkList)
+                foreach (var userLink in dvd.MyLinks.UserLinkList)
                 {
-                    GetInsertDVDxMyLinksCommand(sqlCommands, dvd, userLink);
+                    this.GetInsertDVDxMyLinksCommand(sqlCommands, dvd, userLink);
                 }
             }
         }
 
-        private void GetInsertDVDxTagCommands(List<string> sqlCommands
-            , DVD dvd)
+        private void GetInsertDVDxTagCommands(List<string> sqlCommands, Profiler.DVD dvd)
         {
             if (dvd.TagList?.Length > 0)
             {
-                foreach (Tag tag in dvd.TagList)
+                foreach (var tag in dvd.TagList)
                 {
-                    GetInsertDVDxTagCommand(sqlCommands, dvd, tag);
+                    this.GetInsertDVDxTagCommand(sqlCommands, dvd, tag);
                 }
             }
         }
 
-        private void GetInsertDVDxEventCommands(List<string> sqlCommands
-            , DVD dvd)
+        private void GetInsertDVDxEventCommands(List<string> sqlCommands, Profiler.DVD dvd)
         {
             if (dvd.EventList?.Length > 0)
             {
-                foreach (Event myEvent in dvd.EventList)
+                foreach (var myEvent in dvd.EventList)
                 {
-                    GetInsertDVDxEventCommand(sqlCommands, dvd, myEvent);
+                    this.GetInsertDVDxEventCommand(sqlCommands, dvd, myEvent);
                 }
             }
         }
 
-        private void GetInsertDVDxDiscCommands(List<string> sqlCommands
-            , DVD dvd)
+        private void GetInsertDVDxDiscCommands(List<string> sqlCommands, Profiler.DVD dvd)
         {
             if (dvd.DiscList?.Length > 0)
             {
-                foreach (Disc disc in dvd.DiscList)
+                foreach (var disc in dvd.DiscList)
                 {
-                    GetInsertDVDxDiscCommand(sqlCommands, dvd, disc);
+                    this.GetInsertDVDxDiscCommand(sqlCommands, dvd, disc);
                 }
             }
         }
 
-        private void GetInsertDVDxCrewCommands(List<string> sqlCommands
-            , DVD dvd)
+        private void GetInsertDVDxCrewCommands(List<string> sqlCommands, Profiler.DVD dvd)
         {
             if (dvd.CrewList?.Length > 0)
             {
@@ -1004,9 +1014,7 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 
                 foreach (object possibleCrew in dvd.CrewList)
                 {
-                    CrewMember crew = possibleCrew as CrewMember;
-
-                    if (crew != null)
+                    if (possibleCrew is Profiler.CrewMember crew)
                     {
                         if (lastCreditType != crew.CreditType)
                         {
@@ -1015,18 +1023,17 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
                             lastGroup = null;
                         }
 
-                        GetInsertDVDxCrewCommand(sqlCommands, dvd, crew, lastEpisode, lastGroup);
+                        this.GetInsertDVDxCrewCommand(sqlCommands, dvd, crew, lastEpisode, lastGroup);
                     }
                     else
                     {
-                        GetDividerData(ref lastEpisode, ref lastGroup, (Divider)possibleCrew);
+                        this.GetDividerData(ref lastEpisode, ref lastGroup, (Profiler.Divider)possibleCrew);
                     }
                 }
             }
         }
 
-        private void GetInsertDVDxCastCommands(List<string> sqlCommands
-            , DVD dvd)
+        private void GetInsertDVDxCastCommands(List<string> sqlCommands, Profiler.DVD dvd)
         {
             if (dvd.CastList?.Length > 0)
             {
@@ -1036,93 +1043,85 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 
                 foreach (object possibleCast in dvd.CastList)
                 {
-                    CastMember cast = possibleCast as CastMember;
-
-                    if (cast != null)
+                    if (possibleCast is Profiler.CastMember cast)
                     {
-                        GetInsertDVDxCastCommand(sqlCommands, dvd, cast, lastEpisode, lastGroup);
+                        this.GetInsertDVDxCastCommand(sqlCommands, dvd, cast, lastEpisode, lastGroup);
                     }
                     else
                     {
-                        GetDividerData(ref lastEpisode, ref lastGroup, (Divider)possibleCast);
+                        this.GetDividerData(ref lastEpisode, ref lastGroup, (Profiler.Divider)possibleCast);
                     }
                 }
             }
         }
 
-        private void GetInsertDVDxSubtitleCommands(List<string> sqlCommands
-            , DVD dvd)
+        private void GetInsertDVDxSubtitleCommands(List<string> sqlCommands, Profiler.DVD dvd)
         {
             if (dvd.SubtitleList?.Length > 0)
             {
-                foreach (string subtitle in dvd.SubtitleList)
+                foreach (var subtitle in dvd.SubtitleList)
                 {
                     if (string.IsNullOrEmpty(subtitle) == false)
                     {
-                        GetInsertDVDxSubtitleCommand(sqlCommands, dvd, subtitle);
+                        this.GetInsertDVDxSubtitleCommand(sqlCommands, dvd, subtitle);
                     }
                 }
             }
         }
 
-        private void GetInsertDVDxAudioCommands(List<string> sqlCommands
-            , DVD dvd)
+        private void GetInsertDVDxAudioCommands(List<string> sqlCommands, Profiler.DVD dvd)
         {
             if (dvd.AudioList?.Length > 0)
             {
-                foreach (AudioTrack audio in dvd.AudioList)
+                foreach (var audio in dvd.AudioList)
                 {
-                    GetInsertDVDxAudioCommand(sqlCommands, dvd, audio);
+                    this.GetInsertDVDxAudioCommand(sqlCommands, dvd, audio);
                 }
             }
         }
 
-        private void GetInsertDVDxMediaCompanyCommands(List<string> sqlCommands
-            , DVD dvd)
+        private void GetInsertDVDxMediaCompanyCommands(List<string> sqlCommands, Profiler.DVD dvd)
         {
             if (dvd.MediaCompanyList?.Length > 0)
             {
-                foreach (string distributor in dvd.MediaCompanyList)
+                foreach (var distributor in dvd.MediaCompanyList)
                 {
-                    GetInsertDVDxMediaCompanyCommand(sqlCommands, dvd, distributor);
+                    this.GetInsertDVDxMediaCompanyCommand(sqlCommands, dvd, distributor);
                 }
             }
         }
 
-        private void GetInsertDVDxStudioCommands(List<string> sqlCommands
-            , DVD dvd)
+        private void GetInsertDVDxStudioCommands(List<string> sqlCommands, Profiler.DVD dvd)
         {
             if (dvd.StudioList?.Length > 0)
             {
-                foreach (string studio in dvd.StudioList)
+                foreach (var studio in dvd.StudioList)
                 {
-                    GetInsertDVDxStudioCommand(sqlCommands, dvd, studio);
+                    this.GetInsertDVDxStudioCommand(sqlCommands, dvd, studio);
                 }
             }
         }
 
-        private void GetInsertDVDxRegionCommands(List<string> sqlCommands
-            , DVD dvd)
+        private void GetInsertDVDxRegionCommands(List<string> sqlCommands, Profiler.DVD dvd)
         {
             if (dvd.RegionList?.Length > 0)
             {
-                foreach (string region in dvd.RegionList)
+                foreach (var region in dvd.RegionList)
                 {
-                    GetInsertDVDxRegionCommand(sqlCommands, dvd, region);
+                    this.GetInsertDVDxRegionCommand(sqlCommands, dvd, region);
                 }
             }
         }
 
-        private void GetInsertDVDxPluginCommands(List<string> sqlCommands
-            , DVD dvd)
+        private void GetInsertDVDxPluginCommands(List<string> sqlCommands, Profiler.DVD dvd)
         {
             if (dvd.PluginCustomData?.Length > 0)
             {
-                foreach (PluginData pluginData in dvd.PluginCustomData)
+                foreach (var pluginData in dvd.PluginCustomData)
                 {
                     if (pluginData != null)
                     {
-                        GetInsertDVDxPluginCommand(sqlCommands, dvd, pluginData);
+                        this.GetInsertDVDxPluginCommand(sqlCommands, dvd, pluginData);
 
                         PluginDataProcessor.GetInsertCommand(sqlCommands, dvd, pluginData);
                     }
@@ -1130,29 +1129,26 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
             }
         }
 
-        private void GetInsertDVDxGenreCommands(List<string> sqlCommands
-            , DVD dvd)
+        private void GetInsertDVDxGenreCommands(List<string> sqlCommands, Profiler.DVD dvd)
         {
             if (dvd.GenreList?.Length > 0)
             {
-                foreach (string genre in dvd.GenreList)
+                foreach (var genre in dvd.GenreList)
                 {
-                    if (string.IsNullOrEmpty(genre) == false)
+                    if (!string.IsNullOrEmpty(genre))
                     {
-                        GetInsertDVDxGenreCommand(sqlCommands, dvd, genre);
+                        this.GetInsertDVDxGenreCommand(sqlCommands, dvd, genre);
                     }
                 }
             }
         }
 
-        private void GetInsertDVDxDVDCommand(List<string> sqlCommands
-            , DVD dvd
-            , string dvdId)
+        private void GetInsertDVDxDVDCommand(List<string> sqlCommands, Profiler.DVD dvd, string dvdId)
         {
-            StringBuilder insertCommand = new StringBuilder();
+            var insertCommand = new StringBuilder();
 
             insertCommand.Append("INSERT INTO tDVDxDVD VALUES (");
-            insertCommand.Append(IdCounter++);
+            insertCommand.Append(this.IdCounter++);
             insertCommand.Append(", ");
             insertCommand.Append(PrepareTextForDb(dvd.ID));
             insertCommand.Append(", ");
@@ -1162,13 +1158,11 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
             sqlCommands.Add(insertCommand.ToString());
         }
 
-        private void GetUpdateParentDVDIdCommand(List<string> sqlCommands
-            , Dictionary<string, bool> dvdHash
-            , DVD dvd)
+        private void GetUpdateParentDVDIdCommand(List<string> sqlCommands, Dictionary<string, bool> dvdHash, Profiler.DVD dvd)
         {
-            if (string.IsNullOrEmpty(dvd.BoxSet.Parent) == false && dvdHash.ContainsKey(dvd.BoxSet.Parent))
+            if (!string.IsNullOrEmpty(dvd.BoxSet.Parent) && dvdHash.ContainsKey(dvd.BoxSet.Parent))
             {
-                StringBuilder updateCommand = new StringBuilder();
+                var updateCommand = new StringBuilder();
 
                 updateCommand.Append("UPDATE tDVD SET ParentDVDId = ");
                 updateCommand.Append(PrepareTextForDb(dvd.BoxSet.Parent));
@@ -1179,14 +1173,12 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
             }
         }
 
-        private void GetInsertDVDxMyLinksCommand(List<string> sqlCommands
-            , DVD dvd
-            , UserLink userLink)
+        private void GetInsertDVDxMyLinksCommand(List<string> sqlCommands, Profiler.DVD dvd, Profiler.UserLink userLink)
         {
-            StringBuilder insertCommand = new StringBuilder();
+            var insertCommand = new StringBuilder();
 
             insertCommand.Append("INSERT INTO tDVDxMyLinks VALUES (");
-            insertCommand.Append(IdCounter++);
+            insertCommand.Append(this.IdCounter++);
             insertCommand.Append(", ");
             insertCommand.Append(PrepareTextForDb(dvd.ID));
             insertCommand.Append(", ");
@@ -1194,41 +1186,37 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
             insertCommand.Append(", ");
             insertCommand.Append(PrepareOptionalTextForDb(userLink.Description));
             insertCommand.Append(", ");
-            insertCommand.Append(LinkCategoryHash[userLink.Category]);
+            insertCommand.Append(_linkCategoryHash[userLink.Category]);
             insertCommand.Append(")");
 
             sqlCommands.Add(insertCommand.ToString());
         }
 
-        private void GetInsertDVDxTagCommand(List<string> sqlCommands
-            , DVD dvd
-            , Tag tag)
+        private void GetInsertDVDxTagCommand(List<string> sqlCommands, Profiler.DVD dvd, Profiler.Tag tag)
         {
-            StringBuilder insertCommand = new StringBuilder();
+            var insertCommand = new StringBuilder();
 
             insertCommand.Append("INSERT INTO tDVDxTag VALUES (");
-            insertCommand.Append(IdCounter++);
+            insertCommand.Append(this.IdCounter++);
             insertCommand.Append(", ");
             insertCommand.Append(PrepareTextForDb(dvd.ID));
             insertCommand.Append(", ");
-            insertCommand.Append(TagHash[tag]);
+            insertCommand.Append(_tagHash[tag]);
             insertCommand.Append(")");
 
             sqlCommands.Add(insertCommand.ToString());
         }
 
-        private void GetInsertDVDxEventCommand(List<string> sqlCommands
-            , DVD dvd
-            , Event myEvent)
+        private void GetInsertDVDxEventCommand(List<string> sqlCommands, Profiler.DVD dvd, Profiler.Event myEvent)
         {
-            StringBuilder insertCommand = new StringBuilder();
+            var insertCommand = new StringBuilder();
 
             insertCommand.Append("INSERT INTO tDVDxEvent VALUES (");
-            insertCommand.Append(IdCounter++);
+            insertCommand.Append(this.IdCounter++);
             insertCommand.Append(", ");
             insertCommand.Append(PrepareTextForDb(dvd.ID));
             insertCommand.Append(", ");
-            insertCommand.Append(EventTypeHash[myEvent.Type]);
+            insertCommand.Append(_eventTypeHash[myEvent.Type]);
             insertCommand.Append(", ");
 
             PrepareDateForDb(insertCommand, myEvent.Timestamp, true);
@@ -1236,20 +1224,18 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
             insertCommand.Append(", ");
             insertCommand.Append(PrepareOptionalTextForDb(myEvent.Note));
             insertCommand.Append(", ");
-            insertCommand.Append(UserHash[myEvent.User]);
+            insertCommand.Append(_userHash[myEvent.User]);
             insertCommand.Append(")");
 
             sqlCommands.Add(insertCommand.ToString());
         }
 
-        private void GetInsertDVDxDiscCommand(List<string> sqlCommands
-            , DVD dvd
-            , Disc disc)
+        private void GetInsertDVDxDiscCommand(List<string> sqlCommands, Profiler.DVD dvd, Profiler.Disc disc)
         {
-            StringBuilder insertCommand = new StringBuilder();
+            var insertCommand = new StringBuilder();
 
             insertCommand.Append("INSERT INTO tDVDxDisc VALUES (");
-            insertCommand.Append(IdCounter++);
+            insertCommand.Append(this.IdCounter++);
             insertCommand.Append(", ");
             insertCommand.Append(PrepareTextForDb(dvd.ID));
             insertCommand.Append(", ");
@@ -1279,20 +1265,17 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
             sqlCommands.Add(insertCommand.ToString());
         }
 
-        private void GetInsertDVDxCrewCommand(List<string> sqlCommands
-            , DVD dvd
-            , CrewMember crew
-            , string lastEpisode
+        private void GetInsertDVDxCrewCommand(List<string> sqlCommands, Profiler.DVD dvd, Profiler.CrewMember crew, string lastEpisode
             , string lastGroup)
         {
             StringBuilder insertCommand = new StringBuilder();
 
             insertCommand.Append("INSERT INTO tDVDxCrew VALUES (");
-            insertCommand.Append(IdCounter++);
+            insertCommand.Append(this.IdCounter++);
             insertCommand.Append(", ");
             insertCommand.Append(PrepareTextForDb(dvd.ID));
             insertCommand.Append(", ");
-            insertCommand.Append(CastAndCrewHash[crew]);
+            insertCommand.Append(_castAndCrewHash[crew]);
             insertCommand.Append(", ");
             insertCommand.Append(PrepareOptionalTextForDb(crew.CreditType));
             insertCommand.Append(", ");
@@ -1319,20 +1302,16 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
             sqlCommands.Add(insertCommand.ToString());
         }
 
-        private void GetInsertDVDxCastCommand(List<string> sqlCommands
-            , DVD dvd
-            , CastMember cast
-            , string lastEpisode
-            , string lastGroup)
+        private void GetInsertDVDxCastCommand(List<string> sqlCommands, Profiler.DVD dvd, Profiler.CastMember cast, string lastEpisode, string lastGroup)
         {
-            StringBuilder insertCommand = new StringBuilder();
+            var insertCommand = new StringBuilder();
 
             insertCommand.Append("INSERT INTO tDVDxCast VALUES (");
-            insertCommand.Append(IdCounter++);
+            insertCommand.Append(this.IdCounter++);
             insertCommand.Append(", ");
             insertCommand.Append(PrepareTextForDb(dvd.ID));
             insertCommand.Append(", ");
-            insertCommand.Append(CastAndCrewHash[cast]);
+            insertCommand.Append(_castAndCrewHash[cast]);
             insertCommand.Append(", ");
             insertCommand.Append(PrepareOptionalTextForDb(cast.Role));
             insertCommand.Append(", ");
@@ -1352,86 +1331,76 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
             sqlCommands.Add(insertCommand.ToString());
         }
 
-        private void GetInsertDVDxSubtitleCommand(List<string> sqlCommands
-            , DVD dvd
-            , string subtitle)
+        private void GetInsertDVDxSubtitleCommand(List<string> sqlCommands, Profiler.DVD dvd, string subtitle)
         {
-            StringBuilder insertCommand = new StringBuilder();
+            var insertCommand = new StringBuilder();
 
             insertCommand.Append("INSERT INTO tDVDxSubtitle VALUES (");
-            insertCommand.Append(IdCounter++);
+            insertCommand.Append(this.IdCounter++);
             insertCommand.Append(", ");
             insertCommand.Append(PrepareTextForDb(dvd.ID));
             insertCommand.Append(", ");
-            insertCommand.Append(SubtitleHash[subtitle]);
+            insertCommand.Append(_subtitleHash[subtitle]);
             insertCommand.Append(")");
 
             sqlCommands.Add(insertCommand.ToString());
         }
 
-        private void GetInsertDVDxAudioCommand(List<string> sqlCommands
-            , DVD dvd
-            , AudioTrack audio)
+        private void GetInsertDVDxAudioCommand(List<string> sqlCommands, Profiler.DVD dvd, Profiler.AudioTrack audio)
         {
-            StringBuilder insertCommand = new StringBuilder();
+            var insertCommand = new StringBuilder();
 
             insertCommand.Append("INSERT INTO tDVDxAudio VALUES (");
-            insertCommand.Append(IdCounter++);
+            insertCommand.Append(this.IdCounter++);
             insertCommand.Append(", ");
             insertCommand.Append(PrepareTextForDb(dvd.ID));
             insertCommand.Append(", ");
-            insertCommand.Append(AudioContentHash[audio.Content]);
+            insertCommand.Append(_audioContentHash[audio.Content]);
             insertCommand.Append(", ");
-            insertCommand.Append(AudioFormatHash[audio.Format]);
+            insertCommand.Append(_audioFormatHash[audio.Format]);
             insertCommand.Append(", ");
-            insertCommand.Append(AudioChannelsHash[audio.Channels]);
+            insertCommand.Append(_audioChannelsHash[audio.Channels]);
             insertCommand.Append(")");
 
             sqlCommands.Add(insertCommand.ToString());
         }
 
-        private void GetInsertDVDxMediaCompanyCommand(List<string> sqlCommands
-            , DVD dvd
-            , string distributor)
+        private void GetInsertDVDxMediaCompanyCommand(List<string> sqlCommands, Profiler.DVD dvd, string distributor)
         {
-            StringBuilder insertCommand = new StringBuilder();
+            var insertCommand = new StringBuilder();
 
             insertCommand.Append("INSERT INTO tDVDxMediaCompany VALUES (");
-            insertCommand.Append(IdCounter++);
+            insertCommand.Append(this.IdCounter++);
             insertCommand.Append(", ");
             insertCommand.Append(PrepareTextForDb(dvd.ID));
             insertCommand.Append(", ");
-            insertCommand.Append(StudioAndMediaCompanyHash[distributor]);
+            insertCommand.Append(_studioAndMediaCompanyHash[distributor]);
             insertCommand.Append(")");
 
             sqlCommands.Add(insertCommand.ToString());
         }
 
-        private void GetInsertDVDxStudioCommand(List<string> sqlCommands
-            , DVD dvd
-            , string studio)
+        private void GetInsertDVDxStudioCommand(List<string> sqlCommands, Profiler.DVD dvd, string studio)
         {
-            StringBuilder insertCommand = new StringBuilder();
+            var insertCommand = new StringBuilder();
 
             insertCommand.Append("INSERT INTO tDVDxStudio VALUES (");
-            insertCommand.Append(IdCounter++);
+            insertCommand.Append(this.IdCounter++);
             insertCommand.Append(", ");
             insertCommand.Append(PrepareTextForDb(dvd.ID));
             insertCommand.Append(", ");
-            insertCommand.Append(StudioAndMediaCompanyHash[studio]);
+            insertCommand.Append(_studioAndMediaCompanyHash[studio]);
             insertCommand.Append(")");
 
             sqlCommands.Add(insertCommand.ToString());
         }
 
-        private void GetInsertDVDxRegionCommand(List<string> sqlCommands
-            , DVD dvd
-            , string region)
+        private void GetInsertDVDxRegionCommand(List<string> sqlCommands, Profiler.DVD dvd, string region)
         {
-            StringBuilder insertCommand = new StringBuilder();
+            var insertCommand = new StringBuilder();
 
             insertCommand.Append("INSERT INTO tDVDxRegion VALUES (");
-            insertCommand.Append(IdCounter++);
+            insertCommand.Append(this.IdCounter++);
             insertCommand.Append(", ");
             insertCommand.Append(PrepareTextForDb(dvd.ID));
             insertCommand.Append(", ");
@@ -1441,20 +1410,18 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
             sqlCommands.Add(insertCommand.ToString());
         }
 
-        private void GetInsertDVDxPluginCommand(List<string> sqlCommands
-            , DVD dvd
-            , PluginData pluginData)
+        private void GetInsertDVDxPluginCommand(List<string> sqlCommands, Profiler.DVD dvd, Profiler.PluginData pluginData)
         {
-            StringBuilder insertCommand = new StringBuilder();
+            var insertCommand = new StringBuilder();
 
             insertCommand.Append("INSERT INTO tDVDxPluginData VALUES (");
-            insertCommand.Append(IdCounter++);
+            insertCommand.Append(this.IdCounter++);
             insertCommand.Append(", ");
             insertCommand.Append(PrepareTextForDb(dvd.ID));
             insertCommand.Append(", ");
-            insertCommand.Append(PluginHash[pluginData]);
+            insertCommand.Append(_pluginHash[pluginData]);
             insertCommand.Append(", ");
-            insertCommand.Append(PrepareOptionalTextForDb(GetPluginData(pluginData.Any)));
+            insertCommand.Append(PrepareOptionalTextForDb(this.GetPluginData(pluginData.Any)));
             insertCommand.Append(")");
 
             sqlCommands.Add(insertCommand.ToString());
@@ -1464,12 +1431,12 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
         {
             if ((xmlNodes == null) || (xmlNodes.Length == 0))
             {
-                return (null);
+                return null;
             }
 
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
 
-            foreach (XmlNode xmlNode in xmlNodes)
+            foreach (var xmlNode in xmlNodes)
             {
                 if ((xmlNode != null) && (string.IsNullOrEmpty(xmlNode.OuterXml) == false))
                 {
@@ -1477,96 +1444,89 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
                 }
             }
 
-            return (sb.ToString());
+            return sb.ToString();
         }
 
-        private void GetInsertDVDxGenreCommand(List<string> sqlCommands
-            , DVD dvd
-            , string genre)
+        private void GetInsertDVDxGenreCommand(List<string> sqlCommands, Profiler.DVD dvd, string genre)
         {
-            StringBuilder insertCommand = new StringBuilder();
+            var insertCommand = new StringBuilder();
 
             insertCommand.Append("INSERT INTO tDVDxGenre VALUES (");
-            insertCommand.Append(IdCounter++);
+            insertCommand.Append(this.IdCounter++);
             insertCommand.Append(", ");
             insertCommand.Append(PrepareTextForDb(dvd.ID));
             insertCommand.Append(", ");
-            insertCommand.Append(GenreHash[genre]);
+            insertCommand.Append(_genreHash[genre]);
             insertCommand.Append(")");
 
             sqlCommands.Add(insertCommand.ToString());
         }
 
-        private void GetInsertDVDxMediaTypeCustomCommand(List<string> sqlCommands
-            , DVD dvd)
+        private void GetInsertDVDxMediaTypeCustomCommand(List<string> sqlCommands, Profiler.DVD dvd)
         {
-            StringBuilder insertCommand = new StringBuilder();
+            var insertCommand = new StringBuilder();
 
             insertCommand.Append("INSERT INTO tDVDxMediaType VALUES (");
-            insertCommand.Append(IdCounter++);
+            insertCommand.Append(this.IdCounter++);
             insertCommand.Append(", ");
             insertCommand.Append(PrepareTextForDb(dvd.ID));
             insertCommand.Append(", ");
-            insertCommand.Append(MediaTypeHash[dvd.MediaTypes.CustomMediaType]);
+            insertCommand.Append(_mediaTypeHash[dvd.MediaTypes.CustomMediaType]);
             insertCommand.Append(")");
 
             sqlCommands.Add(insertCommand.ToString());
         }
 
-        private void GetInsertDVDxMediaTypeHDDVDCommand(List<string> sqlCommands
-            , DVD dvd)
+        private void GetInsertDVDxMediaTypeHDDVDCommand(List<string> sqlCommands, Profiler.DVD dvd)
         {
-            StringBuilder insertCommand = new StringBuilder();
+            var insertCommand = new StringBuilder();
 
             insertCommand.Append("INSERT INTO tDVDxMediaType VALUES (");
-            insertCommand.Append(IdCounter++);
+            insertCommand.Append(this.IdCounter++);
             insertCommand.Append(", ");
             insertCommand.Append(PrepareTextForDb(dvd.ID));
             insertCommand.Append(", ");
-            insertCommand.Append(MediaTypeHash["HD-DVD"]);
+            insertCommand.Append(_mediaTypeHash["HD-DVD"]);
             insertCommand.Append(")");
 
             sqlCommands.Add(insertCommand.ToString());
         }
 
-        private void GetInsertDVDxMediaTypeBlurayCommand(List<string> sqlCommands
-            , DVD dvd)
+        private void GetInsertDVDxMediaTypeBlurayCommand(List<string> sqlCommands, Profiler.DVD dvd)
         {
-            StringBuilder insertCommand = new StringBuilder();
+            var insertCommand = new StringBuilder();
 
             insertCommand.Append("INSERT INTO tDVDxMediaType VALUES (");
-            insertCommand.Append(IdCounter++);
+            insertCommand.Append(this.IdCounter++);
             insertCommand.Append(", ");
             insertCommand.Append(PrepareTextForDb(dvd.ID));
             insertCommand.Append(", ");
-            insertCommand.Append(MediaTypeHash["Blu-ray"]);
+            insertCommand.Append(_mediaTypeHash["Blu-ray"]);
             insertCommand.Append(")");
 
             sqlCommands.Add(insertCommand.ToString());
         }
 
-        private void GetInsertDVDxMediaTypeDVDCommand(List<string> sqlCommands
-            , DVD dvd)
+        private void GetInsertDVDxMediaTypeDVDCommand(List<string> sqlCommands, Profiler.DVD dvd)
         {
-            StringBuilder insertCommand = new StringBuilder();
+            var insertCommand = new StringBuilder();
 
             insertCommand.Append("INSERT INTO tDVDxMediaType VALUES (");
-            insertCommand.Append(IdCounter++);
+            insertCommand.Append(this.IdCounter++);
             insertCommand.Append(", ");
             insertCommand.Append(PrepareTextForDb(dvd.ID));
             insertCommand.Append(", ");
-            insertCommand.Append(MediaTypeHash["DVD"]);
+            insertCommand.Append(_mediaTypeHash["DVD"]);
             insertCommand.Append(")");
 
             sqlCommands.Add(insertCommand.ToString());
         }
 
-        private void GetInsertLockCommand(List<string> sqlCommands
-            , DVD dvd)
+        private void GetInsertLockCommand(List<string> sqlCommands, Profiler.DVD dvd)
         {
             if (dvd.Locks != null)
             {
-                StringBuilder insertCommand = new StringBuilder();
+                var insertCommand = new StringBuilder();
 
                 insertCommand.Append("INSERT INTO tLock VALUES (");
                 insertCommand.Append(PrepareTextForDb(dvd.ID));
@@ -1620,10 +1580,9 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
             }
         }
 
-        private void GetInsertPurchaseCommand(List<string> sqlCommands
-            , DVD dvd)
+        private void GetInsertPurchaseCommand(List<string> sqlCommands, Profiler.DVD dvd)
         {
-            StringBuilder insertCommand = new StringBuilder();
+            var insertCommand = new StringBuilder();
 
             insertCommand.Append("INSERT INTO tPurchase VALUES (");
             insertCommand.Append(PrepareTextForDb(dvd.ID));
@@ -1669,12 +1628,12 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
             }
             else
             {
-                if ((string.IsNullOrEmpty(dvd.PurchaseInfo.GiftFrom.FirstName) == false)
-                    || (string.IsNullOrEmpty(dvd.PurchaseInfo.GiftFrom.LastName) == false))
+                if (!string.IsNullOrEmpty(dvd.PurchaseInfo.GiftFrom.FirstName)
+                    || !string.IsNullOrEmpty(dvd.PurchaseInfo.GiftFrom.LastName))
                 {
-                    User user = new User(dvd.PurchaseInfo.GiftFrom);
+                    var user = new Profiler.User(dvd.PurchaseInfo.GiftFrom);
 
-                    insertCommand.Append(UserHash[user]);
+                    insertCommand.Append(_userHash[user]);
                 }
                 else
                 {
@@ -1687,17 +1646,16 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
             sqlCommands.Add(insertCommand.ToString());
         }
 
-        private void GetInsertFormatCommand(List<string> sqlCommands
-            , DVD dvd)
+        private void GetInsertFormatCommand(List<string> sqlCommands, Profiler.DVD dvd)
         {
-            StringBuilder insertCommand = new StringBuilder();
+            var insertCommand = new StringBuilder();
 
             insertCommand.Append("INSERT INTO tFormat VALUES (");
             insertCommand.Append(PrepareTextForDb(dvd.ID));
             insertCommand.Append(", ");
             insertCommand.Append(PrepareOptionalTextForDb(dvd.Format.AspectRatio));
             insertCommand.Append(", ");
-            insertCommand.Append(VideoStandardHash[dvd.Format.VideoStandard]);
+            insertCommand.Append(_videoStandardHash[dvd.Format.VideoStandard]);
             insertCommand.Append(", ");
             insertCommand.Append(dvd.Format.LetterBox);
             insertCommand.Append(", ");
@@ -1733,10 +1691,9 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
             sqlCommands.Add(insertCommand.ToString());
         }
 
-        private void GetInsertFeaturesCommand(List<string> sqlCommands
-            , DVD dvd)
+        private void GetInsertFeaturesCommand(List<string> sqlCommands, Profiler.DVD dvd)
         {
-            StringBuilder insertCommand = new StringBuilder();
+            var insertCommand = new StringBuilder();
 
             insertCommand.Append("INSERT INTO tFeatures VALUES (");
             insertCommand.Append(PrepareTextForDb(dvd.ID));
@@ -1795,10 +1752,9 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
             sqlCommands.Add(insertCommand.ToString());
         }
 
-        private void GetInsertLoanInfoCommand(List<string> sqlCommands
-            , DVD dvd)
+        private void GetInsertLoanInfoCommand(List<string> sqlCommands, Profiler.DVD dvd)
         {
-            StringBuilder insertCommand = new StringBuilder();
+            var insertCommand = new StringBuilder();
 
             insertCommand.Append("INSERT INTO tLoanInfo VALUES (");
             insertCommand.Append(PrepareTextForDb(dvd.ID));
@@ -1823,7 +1779,7 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
             }
             else
             {
-                insertCommand.Append(UserHash[dvd.LoanInfo.User]);
+                insertCommand.Append(_userHash[dvd.LoanInfo.User]);
             }
 
             insertCommand.Append(")");
@@ -1831,10 +1787,9 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
             sqlCommands.Add(insertCommand.ToString());
         }
 
-        private void GetInsertReviewCommand(List<string> sqlCommands
-            , DVD dvd)
+        private void GetInsertReviewCommand(List<string> sqlCommands, Profiler.DVD dvd)
         {
-            StringBuilder insertCommand = new StringBuilder();
+            var insertCommand = new StringBuilder();
 
             insertCommand.Append("INSERT INTO tReview VALUES (");
             insertCommand.Append(PrepareTextForDb(dvd.ID));
@@ -1851,10 +1806,9 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
             sqlCommands.Add(insertCommand.ToString());
         }
 
-        private void GetInsertDVDIdCommand(List<string> sqlCommands
-            , DVD dvd)
+        private void GetInsertDVDIdCommand(List<string> sqlCommands, Profiler.DVD dvd)
         {
-            StringBuilder insertCommand = new StringBuilder();
+            var insertCommand = new StringBuilder();
 
             insertCommand.Append("INSERT INTO tDVDId VALUES (");
             insertCommand.Append(PrepareTextForDb(dvd.ID));
@@ -1883,18 +1837,17 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
             }
 
             insertCommand.Append(", ");
-            insertCommand.Append(LocalityHash[dvd.ID_LocalityDesc]);
+            insertCommand.Append(_localityHash[dvd.ID_LocalityDesc]);
             insertCommand.Append(", ");
-            insertCommand.Append(DVDIdTypeHash[dvd.ID_Type]);
+            insertCommand.Append(_dVDIdTypeHash[dvd.ID_Type]);
             insertCommand.Append(")");
 
             sqlCommands.Add(insertCommand.ToString());
         }
 
-        private void GetInsertDVDCommand(List<string> sqlCommands
-            , DVD dvd)
+        private void GetInsertDVDCommand(List<string> sqlCommands, Profiler.DVD dvd)
         {
-            StringBuilder insertCommand = new StringBuilder();
+            var insertCommand = new StringBuilder();
 
             insertCommand.Append("INSERT INTO tDVD VALUES (");
             insertCommand.Append(PrepareTextForDb(dvd.ID));
@@ -1903,7 +1856,7 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
             insertCommand.Append(", ");
             insertCommand.Append(PrepareOptionalTextForDb(dvd.CollectionNumber));
             insertCommand.Append(", ");
-            insertCommand.Append(CollectionTypeHash[dvd.CollectionType]);
+            insertCommand.Append(_collectionTypeHash[dvd.CollectionType]);
             insertCommand.Append(", ");
             insertCommand.Append(PrepareTextForDb(dvd.Title));
             insertCommand.Append(", ");
@@ -1949,7 +1902,7 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 
             if (string.IsNullOrEmpty(dvd.CaseType) == false)
             {
-                insertCommand.Append(CaseTypeHash[dvd.CaseType]);
+                insertCommand.Append(_caseTypeHash[dvd.CaseType]);
             }
             else
             {
@@ -2003,17 +1956,15 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
             sqlCommands.Add(insertCommand.ToString());
         }
 
-        private void GetDividerData(ref string lastEpisode
-            , ref string lastGroup
-            , Divider divider)
+        private void GetDividerData(ref string lastEpisode, ref string lastGroup, Profiler.Divider divider)
         {
-            if (divider.Type == DividerType.Episode)
+            if (divider.Type == Profiler.DividerType.Episode)
             {
                 lastEpisode = divider.Caption;
 
                 lastGroup = null;
             }
-            else if (divider.Type == DividerType.Group)
+            else if (divider.Type == Profiler.DividerType.Group)
             {
                 lastGroup = divider.Caption;
             }
@@ -2030,29 +1981,25 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
             }
         }
 
-        private void GetInsertDataCommands(List<string> sqlCommands
-            , DVD dvd
-            , string countryOfOrigin)
+        private void GetInsertDataCommands(List<string> sqlCommands, Profiler.DVD dvd, string countryOfOrigin)
         {
             if (string.IsNullOrEmpty(countryOfOrigin) == false)
             {
                 StringBuilder insertCommand = new StringBuilder();
 
                 insertCommand.Append("INSERT INTO tDVDxCountryOfOrigin VALUES (");
-                insertCommand.Append(IdCounter++);
+                insertCommand.Append(this.IdCounter++);
                 insertCommand.Append(", ");
                 insertCommand.Append(PrepareTextForDb(dvd.ID));
                 insertCommand.Append(", ");
-                insertCommand.Append(CountryOfOriginHash[countryOfOrigin]);
+                insertCommand.Append(_countryOfOriginHash[countryOfOrigin]);
                 insertCommand.Append(")");
 
                 sqlCommands.Add(insertCommand.ToString());
             }
         }
 
-        internal static void PrepareDateForDb(StringBuilder insertCommand
-            , DateTime date
-            , bool withTime)
+        internal static void PrepareDateForDb(StringBuilder insertCommand, DateTime date, bool withTime)
         {
             insertCommand.Append("#");
             insertCommand.Append(date.Month);
@@ -2078,11 +2025,9 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 
         #region Prepare...TextForDb
 
-        internal static string PrepareTextForDb(string text)
-            => ("'" + text.Replace("'", "''") + "'");
+        internal static string PrepareTextForDb(string text) => "'" + text.Replace("'", "''") + "'";
 
-        internal static string PrepareOptionalTextForDb(string text)
-            => ((string.IsNullOrEmpty(text)) ? NULL : (PrepareTextForDb(text)));
+        internal static string PrepareOptionalTextForDb(string text) => string.IsNullOrEmpty(text) ? NULL : PrepareTextForDb(text);
 
         #endregion
 
@@ -2090,69 +2035,76 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 
         private void InsertBaseData()
         {
-            List<string> sqlCommands = new List<string>();
+            var sqlCommands = new List<string>();
 
-            GetInsertUserCommands(sqlCommands);
+            this.GetInsertUserCommands(sqlCommands);
 
-            InsertData(sqlCommands, "User");
-
-            sqlCommands = new List<string>();
-
-            GetInsertStudioAndMediaCompanyCommands(sqlCommands);
-
-            InsertData(sqlCommands, "StudioAndMediaCompany");
+            this.InsertData(sqlCommands, "User");
 
             sqlCommands = new List<string>();
 
-            GetInsertTagCommands(sqlCommands);
+            this.GetInsertStudioAndMediaCompanyCommands(sqlCommands);
 
-            InsertData(sqlCommands, "Tag");
+            this.InsertData(sqlCommands, "StudioAndMediaCompany");
 
             sqlCommands = new List<string>();
 
-            GetInsertPluginDataCommands(sqlCommands);
+            this.GetInsertTagCommands(sqlCommands);
 
-            InsertData(sqlCommands, "PluginData");
+            this.InsertData(sqlCommands, "Tag");
+
+            sqlCommands = new List<string>();
+
+            this.GetInsertPluginDataCommands(sqlCommands);
+
+            this.InsertData(sqlCommands, "PluginData");
         }
 
         private void InsertBaseData(Hashtable<string> hash
             , string tableName)
         {
-            List<string> sqlCommands = GetInsertBaseDataCommands(hash, tableName);
+            var sqlCommands = this.GetInsertBaseDataCommands(hash, tableName);
 
-            InsertData(sqlCommands, tableName.Substring(1));
+            this.InsertData(sqlCommands, tableName.Substring(1));
         }
 
         private void InsertBaseData<T>(Hashtable<T> hash
             , string tableName)
             where T : struct
         {
-            List<string> sqlCommands = GetInsertBaseDataCommands(hash, tableName);
+            var sqlCommands = this.GetInsertBaseDataCommands(hash, tableName);
 
-            InsertData(sqlCommands, tableName.Substring(1));
+            this.InsertData(sqlCommands, tableName.Substring(1));
         }
 
-        private void InsertBaseData(CollectionTypeHashtable hash
-            , string tableName)
+        private void InsertBaseData(CollectionTypeHashtable hash, string tableName)
         {
-            List<string> sqlCommands = GetInsertBaseDataCommands(hash, tableName);
+            var sqlCommands = this.GetInsertBaseDataCommands(hash, tableName);
 
-            InsertData(sqlCommands, tableName.Substring(1));
+            this.InsertData(sqlCommands, tableName.Substring(1));
         }
 
-        private void InsertBaseData(PersonHashtable hash
-            , string tableName)
+        private void InsertBaseData(PersonHashtable hash, string tableName)
         {
-            List<string> sqlCommands = GetInsertBaseDataCommands(hash, tableName);
+            var sqlCommands = this.GetInsertBaseDataCommands(hash, tableName);
 
-            InsertData(sqlCommands, tableName.Substring(1));
+            this.InsertData(sqlCommands, tableName.Substring(1));
         }
 
         private void InsertData()
         {
-            List<string> sqlCommands = GetInsertDataCommands();
+            var profiles = this.GetInsertDataCommands();
 
-            InsertData(sqlCommands, "DVD");
+            foreach (var profile in profiles)
+            {
+                foreach (var commandGroup in profile)
+                {
+                    if (commandGroup.Value.Count > 0)
+                    {
+                        this.InsertData(commandGroup.Value, commandGroup.Key);
+                    }
+                }
+            }
         }
 
         private void InsertData(List<string> sqlCommands
@@ -2166,11 +2118,11 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 
             foreach (string insertCommand in sqlCommands)
             {
-                Command.CommandText = insertCommand;
+                _command.CommandText = insertCommand;
 
                 try
                 {
-                    Command.ExecuteNonQuery();
+                    _command.ExecuteNonQuery();
                 }
                 catch (OleDbException ex)
                 {
@@ -2189,9 +2141,9 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 
         private void CheckDBVersion()
         {
-            Command.CommandText = "SELECT Version from tDBVersion";
+            _command.CommandText = "SELECT Version from tDBVersion";
 
-            using (OleDbDataReader reader = Command.ExecuteReader(System.Data.CommandBehavior.SingleRow))
+            using (var reader = _command.ExecuteReader(System.Data.CommandBehavior.SingleRow))
             {
                 reader.Read();
 

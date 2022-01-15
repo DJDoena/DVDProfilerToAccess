@@ -1,10 +1,10 @@
-using System;
-using System.ComponentModel;
-using System.Diagnostics;
-using Profiler = DoenaSoft.DVDProfiler.DVDProfilerXML.Version400;
-
 namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 {
+    using System;
+    using System.ComponentModel;
+    using System.Diagnostics;
+    using Profiler = DVDProfilerXML.Version400;
+
     [ImmutableObject(true)]
     [DebuggerDisplay("{FirstName} {LastName}")]
     internal sealed class UserKey : IEquatable<UserKey>
@@ -21,13 +21,16 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 
         public UserKey(Profiler.User user)
         {
-            LastName = user.LastName ?? string.Empty;
-            FirstName = user.FirstName ?? string.Empty;
-            EmailAddress = user.EmailAddress;
-            PhoneNumber = user.PhoneNumber;
+            this.LastName = user.LastName ?? string.Empty;
 
-            _hashCode = LastName.ToLowerInvariant().GetHashCode()
-                ^ FirstName.ToLowerInvariant().GetHashCode();
+            this.FirstName = user.FirstName ?? string.Empty;
+
+            this.EmailAddress = user.EmailAddress;
+
+            this.PhoneNumber = user.PhoneNumber;
+
+            _hashCode = this.LastName.ToLowerInvariant().GetHashCode()
+                ^ this.FirstName.ToLowerInvariant().GetHashCode();
         }
 
         public static bool IsValid(Profiler.User user) => !IsInvalid(user);
@@ -50,7 +53,7 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 
         public override int GetHashCode() => _hashCode;
 
-        public override bool Equals(object obj) => Equals(obj as UserKey);
+        public override bool Equals(object obj) => this.Equals(obj as UserKey);
 
         public bool Equals(UserKey other)
         {
@@ -59,8 +62,8 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
                 return false;
             }
 
-            var equals = string.Equals(LastName, other.LastName, StringComparison.InvariantCultureIgnoreCase)
-                 && string.Equals(FirstName, other.FirstName, StringComparison.InvariantCultureIgnoreCase);
+            var equals = string.Equals(this.LastName, other.LastName, StringComparison.InvariantCultureIgnoreCase)
+                 && string.Equals(this.FirstName, other.FirstName, StringComparison.InvariantCultureIgnoreCase);
 
             return equals;
         }

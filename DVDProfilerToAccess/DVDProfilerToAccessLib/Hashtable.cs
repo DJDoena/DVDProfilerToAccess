@@ -1,17 +1,12 @@
-using System;
-using System.Collections.Generic;
-
 namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 {
+    using System.Collections.Generic;
+
     internal class Hashtable<TKey> : Dictionary<TKey, int>
     {
-        internal Hashtable(int capacity)
-            : base(capacity)
+        internal Hashtable(int capacity) : base(capacity)
         { }
 
-        internal void Add(TKey key)
-        {
-            Add(key, SqlProcessor.Instance.IdCounter++);
-        }
+        internal void Add(TKey key) => this.Add(key, SqlProcessor.Instance.IdCounter++);
     }
 }

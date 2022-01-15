@@ -1,12 +1,10 @@
-using System;
-using DoenaSoft.DVDProfiler.DVDProfilerXML.Version400;
-
 namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 {
-    internal class CollectionTypeHashtable : Hashtable<CollectionType>
+    using Profiler = DVDProfilerXML.Version400;
+
+    internal sealed class CollectionTypeHashtable : Hashtable<Profiler.CollectionType>
     {
-        internal CollectionTypeHashtable(int capacity)
-            : base(capacity)
+        internal CollectionTypeHashtable(int capacity) : base(capacity)
         { }
     }
 }
