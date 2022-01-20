@@ -2,9 +2,9 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 {
     using Profiler = DVDProfilerXML.Version400;
 
-    internal sealed class PluginHashtable : Hashtable<PluginDataKey>
+    internal sealed class PluginDictionary : Dictionary<PluginDataKey>
     {
-        internal PluginHashtable(int capacity) : base(capacity)
+        internal PluginDictionary(int capacity) : base(capacity)
         { }
 
         internal void Add(Profiler.PluginData pluginData) => this.Add(new PluginDataKey(pluginData));

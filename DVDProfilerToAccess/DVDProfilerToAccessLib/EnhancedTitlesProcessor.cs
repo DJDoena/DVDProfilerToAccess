@@ -9,58 +9,60 @@
 
     internal static class EnhancedTitlesProcessor
     {
-        internal static void GetInsertCommand(List<string> sqlCommands, Profiler.DVD dvd, Profiler.PluginData pluginData)
+        internal static void AddInsertCommand(List<StringBuilder> commands, Profiler.DVD profile, Profiler.PluginData pluginData)
         {
             if (pluginData.Any?.Length == 1)
             {
                 var et = DVDProfilerSerializer<ET.EnhancedTitles>.FromString(pluginData.Any[0].OuterXml);
 
-                GetInsertCommand(sqlCommands, dvd, et);
+                AddInsertCommand(commands, profile, et);
             }
         }
 
-        private static void GetInsertCommand(List<string> sqlCommands, Profiler.DVD dvd, ET.EnhancedTitles et)
+        private static void AddInsertCommand(List<StringBuilder> commands, Profiler.DVD profile, ET.EnhancedTitles title)
         {
-            var insertCommand = new StringBuilder();
+            var commandText = new StringBuilder();
 
-            insertCommand.Append("INSERT INTO tEnhancedTitles VALUES(");
-            insertCommand.Append(SqlProcessor.PrepareTextForDb(dvd.ID));
-            insertCommand.Append(", ");
+            commandText.Append("INSERT INTO tEnhancedTitles VALUES(");
+            commandText.Append(SqlProcessor.PrepareTextForDb(profile.ID));
+            commandText.Append(", ");
 
-            GetTitle(insertCommand, et.InternationalEnglishTitle);
+            GetTitle(commandText, title.InternationalEnglishTitle);
 
-            insertCommand.Append(", ");
+            commandText.Append(", ");
 
-            GetTitle(insertCommand, et.AlternateOriginalTitle);
+            GetTitle(commandText, title.AlternateOriginalTitle);
 
-            insertCommand.Append(", ");
+            commandText.Append(", ");
 
-            GetTitle(insertCommand, et.NonLatinLettersTitle);
+            GetTitle(commandText, title.NonLatinLettersTitle);
 
-            insertCommand.Append(", ");
+            commandText.Append(", ");
 
-            GetTitle(insertCommand, et.AdditionalTitle1);
+            GetTitle(commandText, title.AdditionalTitle1);
 
-            insertCommand.Append(", ");
+            commandText.Append(", ");
 
-            GetTitle(insertCommand, et.AdditionalTitle2);
+            GetTitle(commandText, title.AdditionalTitle2);
 
-            insertCommand.Append(")");
+            commandText.Append(")");
 
-            sqlCommands.Add(insertCommand.ToString());
+            commands.Add(commandText);
         }
 
-        private static void GetTitle(StringBuilder insertCommand, ET.Text text)
+        private static void GetTitle(StringBuilder commandText, ET.Text text)
         {
             if (text != null)
             {
-                var title = (string.IsNullOrEmpty(text.Base64Title)) ? (text.Value) : (Encoding.UTF8.GetString(Convert.FromBase64String(text.Base64Title)));
+                var title = string.IsNullOrEmpty(text.Base64Title)
+                    ? text.Value
+                    : Encoding.UTF8.GetString(Convert.FromBase64String(text.Base64Title));
 
-                insertCommand.Append(SqlProcessor.PrepareOptionalTextForDb(title));
+                commandText.Append(SqlProcessor.PrepareOptionalTextForDb(title));
             }
             else
             {
-                insertCommand.Append(SqlProcessor.NULL);
+                commandText.Append(SqlProcessor.NULL);
             }
         }
     }

@@ -2,9 +2,9 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 {
     using DVDProfilerXML;
 
-    internal sealed class PersonHashtable : Hashtable<PersonKey>
+    internal sealed class PersonDictionary : Dictionary<PersonKey>
     {
-        internal PersonHashtable(int capacity) : base(capacity)
+        internal PersonDictionary(int capacity) : base(capacity)
         { }
 
         internal void Add(IPerson person) => this.Add(new PersonKey(person));

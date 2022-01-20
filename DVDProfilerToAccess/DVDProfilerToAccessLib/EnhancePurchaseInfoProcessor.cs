@@ -8,124 +8,124 @@
 
     internal static class EnhancePurchaseInfoProcessor
     {
-        internal static void GetInsertCommand(List<string> sqlCommands, Profiler.DVD dvd, Profiler.PluginData pluginData)
+        internal static void AddInsertCommand(List<StringBuilder> commands, Profiler.DVD profile, Profiler.PluginData pluginData)
         {
             if (pluginData.Any?.Length == 1)
             {
                 var epi = DVDProfilerSerializer<EPI.EnhancedPurchaseInfo>.FromString(pluginData.Any[0].OuterXml);
 
-                GetInsertCommand(sqlCommands, dvd, epi);
+                AddInsertCommand(commands, profile, epi);
             }
         }
 
-        private static void GetInsertCommand(List<string> sqlCommands, Profiler.DVD dvd, EPI.EnhancedPurchaseInfo epi)
+        private static void AddInsertCommand(List<StringBuilder> commands, Profiler.DVD profile, EPI.EnhancedPurchaseInfo purchaseInfo)
         {
-            var insertCommand = new StringBuilder();
+            var commandText = new StringBuilder();
 
-            insertCommand.Append("INSERT INTO tEnhancedPurchaseInfo VALUES(");
-            insertCommand.Append(SqlProcessor.PrepareTextForDb(dvd.ID));
-            insertCommand.Append(", ");
+            commandText.Append("INSERT INTO tEnhancedPurchaseInfo VALUES(");
+            commandText.Append(SqlProcessor.PrepareTextForDb(profile.ID));
+            commandText.Append(", ");
 
-            GetPrice(insertCommand, epi.OriginalPrice);
+            GetPrice(commandText, purchaseInfo.OriginalPrice);
 
-            insertCommand.Append(", ");
+            commandText.Append(", ");
 
-            GetPrice(insertCommand, epi.ShippingCost);
+            GetPrice(commandText, purchaseInfo.ShippingCost);
 
-            insertCommand.Append(", ");
+            commandText.Append(", ");
 
-            GetPrice(insertCommand, epi.CreditCardCharge);
+            GetPrice(commandText, purchaseInfo.CreditCardCharge);
 
-            insertCommand.Append(", ");
+            commandText.Append(", ");
 
-            GetPrice(insertCommand, epi.CreditCardFees);
+            GetPrice(commandText, purchaseInfo.CreditCardFees);
 
-            insertCommand.Append(", ");
+            commandText.Append(", ");
 
-            GetPrice(insertCommand, epi.Discount);
+            GetPrice(commandText, purchaseInfo.Discount);
 
-            insertCommand.Append(", ");
+            commandText.Append(", ");
 
-            GetPrice(insertCommand, epi.CustomsFees);
+            GetPrice(commandText, purchaseInfo.CustomsFees);
 
-            insertCommand.Append(", ");
+            commandText.Append(", ");
 
-            GetText(insertCommand, epi.CouponType);
+            GetText(commandText, purchaseInfo.CouponType);
 
-            insertCommand.Append(", ");
+            commandText.Append(", ");
 
-            GetText(insertCommand, epi.CouponCode);
+            GetText(commandText, purchaseInfo.CouponCode);
 
-            insertCommand.Append(", ");
+            commandText.Append(", ");
 
-            GetPrice(insertCommand, epi.AdditionalPrice1);
+            GetPrice(commandText, purchaseInfo.AdditionalPrice1);
 
-            insertCommand.Append(", ");
+            commandText.Append(", ");
 
-            GetPrice(insertCommand, epi.AdditionalPrice2);
+            GetPrice(commandText, purchaseInfo.AdditionalPrice2);
 
-            insertCommand.Append(", ");
+            commandText.Append(", ");
 
-            GetDate(insertCommand, epi.OrderDate);
+            GetDate(commandText, purchaseInfo.OrderDate);
 
-            insertCommand.Append(", ");
+            commandText.Append(", ");
 
-            GetDate(insertCommand, epi.ShippingDate);
+            GetDate(commandText, purchaseInfo.ShippingDate);
 
-            insertCommand.Append(", ");
+            commandText.Append(", ");
 
-            GetDate(insertCommand, epi.DeliveryDate);
+            GetDate(commandText, purchaseInfo.DeliveryDate);
 
-            insertCommand.Append(", ");
+            commandText.Append(", ");
 
-            GetDate(insertCommand, epi.AdditionalDate1);
+            GetDate(commandText, purchaseInfo.AdditionalDate1);
 
-            insertCommand.Append(", ");
+            commandText.Append(", ");
 
-            GetDate(insertCommand, epi.AdditionalDate2);
+            GetDate(commandText, purchaseInfo.AdditionalDate2);
 
-            insertCommand.Append(")");
+            commandText.Append(")");
 
-            sqlCommands.Add(insertCommand.ToString());
+            commands.Add(commandText);
         }
 
-        private static void GetDate(StringBuilder insertCommand, EPI.Date date)
+        private static void GetDate(StringBuilder commandText, EPI.Date date)
         {
             if (date != null)
             {
-                SqlProcessor.PrepareDateForDb(insertCommand, date.Value, false);
+                SqlProcessor.PrepareDateForDb(commandText, date.Value, false);
             }
             else
             {
-                insertCommand.Append(SqlProcessor.NULL);
+                commandText.Append(SqlProcessor.NULL);
             }
         }
 
-        private static void GetText(StringBuilder insertCommand, EPI.Text text)
+        private static void GetText(StringBuilder commandText, EPI.Text text)
         {
             if (text != null)
             {
-                insertCommand.Append(SqlProcessor.PrepareOptionalTextForDb(text.Value));
+                commandText.Append(SqlProcessor.PrepareOptionalTextForDb(text.Value));
             }
             else
             {
-                insertCommand.Append(SqlProcessor.NULL);
+                commandText.Append(SqlProcessor.NULL);
             }
         }
 
-        private static void GetPrice(StringBuilder insertCommand, EPI.Price price)
+        private static void GetPrice(StringBuilder commandText, EPI.Price price)
         {
             if (price != null)
             {
-                insertCommand.Append(SqlProcessor.PrepareOptionalTextForDb(price.DenominationType));
-                insertCommand.Append(", ");
-                insertCommand.Append(price.Value.ToString(SqlProcessor.FormatInfo));
+                commandText.Append(SqlProcessor.PrepareOptionalTextForDb(price.DenominationType));
+                commandText.Append(", ");
+                commandText.Append(price.Value.ToString(SqlProcessor.FormatInfo));
             }
             else
             {
-                insertCommand.Append(SqlProcessor.NULL);
-                insertCommand.Append(", ");
-                insertCommand.Append(SqlProcessor.NULL);
+                commandText.Append(SqlProcessor.NULL);
+                commandText.Append(", ");
+                commandText.Append(SqlProcessor.NULL);
             }
         }
     }

@@ -2,10 +2,9 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 {
     using Profiler = DVDProfilerXML.Version400;
 
-    internal sealed class TagHashtable : Hashtable<TagKey>
+    internal sealed class TagDictionary : Dictionary<TagKey>
     {
-        internal TagHashtable(int capacity)
-            : base(capacity)
+        internal TagDictionary(int capacity) : base(capacity)
         { }
 
         internal void Add(Profiler.Tag tag) => this.Add(new TagKey(tag));

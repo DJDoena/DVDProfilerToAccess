@@ -10,37 +10,37 @@
     {
         private const byte FeatureCount = 40;
 
-        internal static void GetInsertCommand(List<string> sqlCommands, Profiler.DVD dvd, Profiler.PluginData pluginData)
+        internal static void AddInsertCommand(List<StringBuilder> commands, Profiler.DVD profile, Profiler.PluginData pluginData)
         {
             if (pluginData.Any?.Length == 1)
             {
                 var ef = DVDProfilerSerializer<EF.EnhancedFeatures>.FromString(pluginData.Any[0].OuterXml);
 
-                GetInsertCommand(sqlCommands, dvd, ef);
+                AddInsertCommand(commands, profile, ef);
             }
         }
 
-        private static void GetInsertCommand(List<string> sqlCommands, Profiler.DVD dvd, EF.EnhancedFeatures ef)
+        private static void AddInsertCommand(List<StringBuilder> commands, Profiler.DVD profile, EF.EnhancedFeatures feature)
         {
-            var insertCommand = new StringBuilder();
+            var commandText = new StringBuilder();
 
-            insertCommand.Append("INSERT INTO tEnhancedFeatures VALUES(");
-            insertCommand.Append(SqlProcessor.PrepareTextForDb(dvd.ID));
-            insertCommand.Append(", ");
+            commandText.Append("INSERT INTO tEnhancedFeatures VALUES(");
+            commandText.Append(SqlProcessor.PrepareTextForDb(profile.ID));
+            commandText.Append(", ");
 
-            var features = GetFeatures(ef);
+            var features = GetFeatures(feature);
 
             for (var featureIndex = 1; featureIndex < FeatureCount; featureIndex++)
             {
-                insertCommand.Append(features[featureIndex - 1]);
-                insertCommand.Append(", ");
+                commandText.Append(features[featureIndex - 1]);
+                commandText.Append(", ");
             }
 
-            insertCommand.Append(features[FeatureCount - 1]);
+            commandText.Append(features[FeatureCount - 1]);
 
-            insertCommand.Append(")");
+            commandText.Append(")");
 
-            sqlCommands.Add(insertCommand.ToString());
+            commands.Add(commandText);
         }
 
         private static bool[] GetFeatures(EF.EnhancedFeatures ef)

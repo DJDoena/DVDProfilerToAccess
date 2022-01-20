@@ -9,62 +9,64 @@
 
     internal static class EnhancedNotesProcessor
     {
-        internal static void GetInsertEnhancedNotesCommand(List<string> sqlCommands, Profiler.DVD dvd, Profiler.PluginData pluginData)
+        internal static void AddInsertCommand(List<StringBuilder> commands, Profiler.DVD profile, Profiler.PluginData pluginData)
         {
             if (pluginData.Any?.Length == 1)
             {
                 var en = DVDProfilerSerializer<EN.EnhancedNotes>.FromString(pluginData.Any[0].OuterXml);
 
-                GetInsertCommand(sqlCommands, dvd, en);
+                AddInsertCommand(commands, profile, en);
             }
         }
 
-        private static void GetInsertCommand(List<string> sqlCommands, Profiler.DVD dvd, EN.EnhancedNotes en)
+        private static void AddInsertCommand(List<StringBuilder> commands, Profiler.DVD profile, EN.EnhancedNotes notes)
         {
-            var insertCommand = new StringBuilder();
+            var commandText = new StringBuilder();
 
-            insertCommand.Append("INSERT INTO tEnhancedNotes VALUES(");
-            insertCommand.Append(SqlProcessor.PrepareTextForDb(dvd.ID));
-            insertCommand.Append(", ");
+            commandText.Append("INSERT INTO tEnhancedNotes VALUES(");
+            commandText.Append(SqlProcessor.PrepareTextForDb(profile.ID));
+            commandText.Append(", ");
 
-            GetNote(insertCommand, en.Note1);
+            GetNote(commandText, notes.Note1);
 
-            insertCommand.Append(", ");
+            commandText.Append(", ");
 
-            GetNote(insertCommand, en.Note2);
+            GetNote(commandText, notes.Note2);
 
-            insertCommand.Append(", ");
+            commandText.Append(", ");
 
-            GetNote(insertCommand, en.Note3);
+            GetNote(commandText, notes.Note3);
 
-            insertCommand.Append(", ");
+            commandText.Append(", ");
 
-            GetNote(insertCommand, en.Note4);
+            GetNote(commandText, notes.Note4);
 
-            insertCommand.Append(", ");
+            commandText.Append(", ");
 
-            GetNote(insertCommand, en.Note5);
+            GetNote(commandText, notes.Note5);
 
-            insertCommand.Append(")");
+            commandText.Append(")");
 
-            sqlCommands.Add(insertCommand.ToString());
+            commands.Add(commandText);
         }
 
-        private static void GetNote(StringBuilder insertCommand, EN.Text text)
+        private static void GetNote(StringBuilder commandText, EN.Text text)
         {
             if (text != null)
             {
-                var note = (string.IsNullOrEmpty(text.Base64Note)) ? (text.Value) : (Encoding.UTF8.GetString(Convert.FromBase64String(text.Base64Note)));
+                var note = string.IsNullOrEmpty(text.Base64Note)
+                    ? text.Value
+                    : Encoding.UTF8.GetString(Convert.FromBase64String(text.Base64Note));
 
-                insertCommand.Append(SqlProcessor.PrepareOptionalTextForDb(note));
-                insertCommand.Append(", ");
-                insertCommand.Append(text.IsHtml);
+                commandText.Append(SqlProcessor.PrepareOptionalTextForDb(note));
+                commandText.Append(", ");
+                commandText.Append(text.IsHtml);
             }
             else
             {
-                insertCommand.Append(SqlProcessor.NULL);
-                insertCommand.Append(", ");
-                insertCommand.Append(SqlProcessor.NULL);
+                commandText.Append(SqlProcessor.NULL);
+                commandText.Append(", ");
+                commandText.Append(SqlProcessor.NULL);
             }
         }
     }

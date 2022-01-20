@@ -9,46 +9,48 @@
 
     internal static class DigitalDownloadInfoProcessor
     {
-        internal static void GetInsertCommand(List<string> sqlCommands, Profiler.DVD dvd, Profiler.PluginData pluginData)
+        internal static void AddInsertCommand(List<StringBuilder> commands, Profiler.DVD profile, Profiler.PluginData pluginData)
         {
             if (pluginData.Any?.Length == 1)
             {
                 var ddi = DVDProfilerSerializer<DDI.DigitalDownloadInfo>.FromString(pluginData.Any[0].OuterXml);
 
-                GetInsertCommand(sqlCommands, dvd, ddi);
+                AddInsertCommand(commands, profile, ddi);
             }
         }
 
-        private static void GetInsertCommand(List<string> sqlCommands, Profiler.DVD dvd, DDI.DigitalDownloadInfo ddi)
+        private static void AddInsertCommand(List<StringBuilder> commands, Profiler.DVD profile, DDI.DigitalDownloadInfo downloadInfo)
         {
-            var insertCommand = new StringBuilder();
+            var commandText = new StringBuilder();
 
-            insertCommand.Append("INSERT INTO tDigitalDownloadInfo VALUES(");
-            insertCommand.Append(SqlProcessor.PrepareTextForDb(dvd.ID));
-            insertCommand.Append(", ");
+            commandText.Append("INSERT INTO tDigitalDownloadInfo VALUES(");
+            commandText.Append(SqlProcessor.PrepareTextForDb(profile.ID));
+            commandText.Append(", ");
 
-            GetText(insertCommand, ddi.Company);
+            GetText(commandText, downloadInfo.Company);
 
-            insertCommand.Append(", ");
+            commandText.Append(", ");
 
-            GetText(insertCommand, ddi.Code);
+            GetText(commandText, downloadInfo.Code);
 
-            insertCommand.Append(")");
+            commandText.Append(")");
 
-            sqlCommands.Add(insertCommand.ToString());
+            commands.Add(commandText);
         }
 
-        private static void GetText(StringBuilder insertCommand, DDI.Text text)
+        private static void GetText(StringBuilder commandText, DDI.Text text)
         {
             if (text != null)
             {
-                var title = (string.IsNullOrEmpty(text.Base64Text)) ? (text.Value) : (Encoding.UTF8.GetString(Convert.FromBase64String(text.Base64Text)));
+                var info = string.IsNullOrEmpty(text.Base64Text)
+                    ? text.Value
+                    : Encoding.UTF8.GetString(Convert.FromBase64String(text.Base64Text));
 
-                insertCommand.Append(SqlProcessor.PrepareOptionalTextForDb(title));
+                commandText.Append(SqlProcessor.PrepareOptionalTextForDb(info));
             }
             else
             {
-                insertCommand.Append(SqlProcessor.NULL);
+                commandText.Append(SqlProcessor.NULL);
             }
         }
     }
