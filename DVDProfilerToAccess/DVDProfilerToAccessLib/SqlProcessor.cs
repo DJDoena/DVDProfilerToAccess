@@ -2189,6 +2189,8 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
             {
                 command.CommandText = "SELECT Version from tDBVersion";
 
+                command.Transaction = _transaction;
+
                 using (var reader = command.ExecuteReader(System.Data.CommandBehavior.SingleRow))
                 {
                     reader.Read();

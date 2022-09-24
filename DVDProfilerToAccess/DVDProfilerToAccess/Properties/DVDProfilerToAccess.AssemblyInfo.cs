@@ -12,5 +12,5 @@
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
-[assembly: AssemblyVersion("1.9.5.1")]
-[assembly: AssemblyFileVersion("1.9.5.1")]
+[assembly: AssemblyVersion("1.9.5.2")]
+[assembly: AssemblyFileVersion("1.9.5.2")]
