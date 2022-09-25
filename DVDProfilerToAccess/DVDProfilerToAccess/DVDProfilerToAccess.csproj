@@ -10,7 +10,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>DoenaSoft.DVDProfiler.DVDProfilerToAccess</RootNamespace>
     <AssemblyName>DVDProfilerToAccess</AssemblyName>
-    <ApplicationIcon>DJDSOFT.ICO</ApplicationIcon>
+    <ApplicationIcon>djdsoft.ico</ApplicationIcon>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
     <UpgradeBackupLocation>
@@ -51,9 +51,6 @@
     <Compile Include="Properties\DVDProfilerToAccess.AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="DJDSOFT.ICO" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\DVDProfilerToAccessLib\DVDProfilerToAccessLib.csproj">
       <Project>{0408955b-f59a-4555-8a3a-234f0c58dfbe}</Project>
       <Name>DVDProfilerToAccessLib</Name>
@@ -66,6 +63,9 @@
     <PackageReference Include="DoenaSoft.DVDProfilerXML">
       <Version>4.1.2</Version>
     </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="djdsoft.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
