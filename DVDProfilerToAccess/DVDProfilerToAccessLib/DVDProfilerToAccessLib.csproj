@@ -2,6 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>net472</TargetFrameworks>
+		<Platforms>x86</Platforms>
 		<OutputType>Library</OutputType>
 		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
 		<RootNamespace>DoenaSoft.DVDProfiler.DVDProfilerToAccess</RootNamespace>
