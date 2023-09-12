@@ -1,19 +1,19 @@
-﻿namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
-{
-    using System;
-    using System.Collections.Generic;
-    using System.Text;
-    using DVDProfilerHelper;
-    using EN = EnhancedNotes;
-    using Profiler = DVDProfilerXML.Version400;
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+using DoenaSoft.ToolBox.Generics;
+using EN = DoenaSoft.DVDProfiler.EnhancedNotes;
+using Profiler = DoenaSoft.DVDProfiler.DVDProfilerXML.Version400;
 
+namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
+{
     internal static class EnhancedNotesProcessor
     {
         internal static void AddInsertCommand(List<StringBuilder> commands, Profiler.DVD profile, Profiler.PluginData pluginData)
         {
             if (pluginData.Any?.Length == 1)
             {
-                var en = DVDProfilerSerializer<EN.EnhancedNotes>.FromString(pluginData.Any[0].OuterXml);
+                var en = Serializer<EN.EnhancedNotes>.FromString(pluginData.Any[0].OuterXml);
 
                 AddInsertCommand(commands, profile, en);
             }

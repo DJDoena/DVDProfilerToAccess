@@ -1,7 +1,7 @@
+using Profiler = DoenaSoft.DVDProfiler.DVDProfilerXML.Version400;
+
 namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 {
-    using Profiler = DVDProfilerXML.Version400;
-
     internal sealed class TagDictionary : Dictionary<TagKey>
     {
         internal TagDictionary(int capacity) : base(capacity)

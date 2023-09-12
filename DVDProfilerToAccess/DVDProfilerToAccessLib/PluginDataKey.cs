@@ -1,9 +1,9 @@
+using System;
+using System.Diagnostics;
+using Profiler = DoenaSoft.DVDProfiler.DVDProfilerXML.Version400;
+
 namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 {
-    using System;
-    using System.Diagnostics;
-    using Profiler = DVDProfilerXML.Version400;
-
     [DebuggerDisplay("{ClassId}: {Name}")]
     internal sealed class PluginDataKey : IEquatable<PluginDataKey>
     {

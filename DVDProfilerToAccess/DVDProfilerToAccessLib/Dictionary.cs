@@ -1,7 +1,7 @@
+using System.Collections.Generic;
+
 namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 {
-    using System.Collections.Generic;
-
     internal class Dictionary<TKey> : Dictionary<TKey, int>
     {
         internal Dictionary(int capacity) : base(capacity)

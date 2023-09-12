@@ -1,18 +1,19 @@
+using System;
+using System.Collections.Generic;
+using System.Data.OleDb;
+using System.Globalization;
+using System.IO;
+using System.Reflection;
+using System.Text;
+using System.Xml;
+using System.Xml.Serialization;
+using DoenaSoft.DVDProfiler.DVDProfilerHelper;
+using DoenaSoft.DVDProfiler.DVDProfilerXML;
+using DoenaSoft.ToolBox.Generics;
+using Profiler = DoenaSoft.DVDProfiler.DVDProfilerXML.Version400;
+
 namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Data.OleDb;
-    using System.Globalization;
-    using System.IO;
-    using System.Reflection;
-    using System.Text;
-    using System.Xml;
-    using System.Xml.Serialization;
-    using DVDProfilerHelper;
-    using DVDProfilerXML;
-    using Profiler = DVDProfilerXML.Version400;
-
     public sealed class SqlProcessor
     {
         #region Fields
@@ -118,7 +119,7 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 
                 _linkCategories = this.FillStaticHash<Profiler.CategoryRestriction>();
 
-                _collection = DVDProfilerSerializer<Profiler.Collection>.Deserialize(sourceFile);
+                _collection = Serializer<Profiler.Collection>.Deserialize(sourceFile);
 
                 this.FillDynamicHash();
 
@@ -257,9 +258,9 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 
             if (fieldInfos?.Length > 0)
             {
-                Dictionary<T> data = new Dictionary<T>(fieldInfos.Length);
+                var data = new Dictionary<T>(fieldInfos.Length);
 
-                foreach (FieldInfo fieldInfo in fieldInfos)
+                foreach (var fieldInfo in fieldInfos)
                 {
                     data.Add((T)fieldInfo.GetRawConstantValue());
                 }
@@ -723,7 +724,7 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
                 commandText.Append(keyValue.Value.ToString());
                 commandText.Append(", ");
 
-                string name = Enum.GetName(typeof(T), keyValue.Key);
+                var name = Enum.GetName(typeof(T), keyValue.Key);
 
                 var fieldInfo = keyValue.Key.GetType().GetField(name, BindingFlags.Public | BindingFlags.Static);
 
@@ -1017,7 +1018,7 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 
                 string lastCreditType = null;
 
-                foreach (object possibleCrew in profile.CrewList)
+                foreach (var possibleCrew in profile.CrewList)
                 {
                     if (possibleCrew is Profiler.CrewMember crew)
                     {
@@ -1046,7 +1047,7 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 
                 string lastGroup = null;
 
-                foreach (object possibleCast in profile.CastList)
+                foreach (var possibleCast in profile.CastList)
                 {
                     if (possibleCast is Profiler.CastMember cast)
                     {
@@ -1274,7 +1275,7 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 
         private void GetInsertDVDxCrewCommand(List<StringBuilder> commands, Profiler.DVD profile, Profiler.CrewMember crew, string lastEpisode, string lastGroup)
         {
-            StringBuilder commandText = new StringBuilder();
+            var commandText = new StringBuilder();
 
             commandText.Append("INSERT INTO tDVDxCrew VALUES (");
             commandText.Append(this.IdCounter++);
@@ -2195,7 +2196,7 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
                 {
                     reader.Read();
 
-                    string version = reader.GetString(0);
+                    var version = reader.GetString(0);
 
                     if (version != DVDProfilerSchemaVersion)
                     {

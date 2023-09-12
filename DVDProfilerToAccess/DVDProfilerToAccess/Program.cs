@@ -1,11 +1,11 @@
+using System;
+using System.IO;
+using System.Reflection;
+using System.Windows.Forms;
+using DoenaSoft.DVDProfiler.DVDProfilerHelper;
+
 namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 {
-    using System;
-    using System.IO;
-    using System.Reflection;
-    using System.Windows.Forms;
-    using DVDProfilerHelper;
-
     public static class Program
     {
         private static readonly WindowHandle _windowHandle;
@@ -125,7 +125,7 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
             Console.WriteLine();
             Console.WriteLine("Tranforming data:");
 
-            SqlProcessor sqlProcessor = SqlProcessor.Instance;
+            var sqlProcessor = SqlProcessor.Instance;
 
             sqlProcessor.ProgressMaxChanged += OnSqlProcessorProgressMaxChanged;
             sqlProcessor.ProgressValueChanged += OnSqlProcessorProgressValueChanged;

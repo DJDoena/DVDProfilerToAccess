@@ -1,7 +1,7 @@
+using DoenaSoft.DVDProfiler.DVDProfilerXML;
+
 namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 {
-    using DVDProfilerXML;
-
     internal sealed class PersonDictionary : Dictionary<PersonKey>
     {
         internal PersonDictionary(int capacity) : base(capacity)

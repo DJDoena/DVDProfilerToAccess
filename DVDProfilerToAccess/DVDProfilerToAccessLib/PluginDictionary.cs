@@ -1,7 +1,7 @@
+using Profiler = DoenaSoft.DVDProfiler.DVDProfilerXML.Version400;
+
 namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 {
-    using Profiler = DVDProfilerXML.Version400;
-
     internal sealed class PluginDictionary : Dictionary<PluginDataKey>
     {
         internal PluginDictionary(int capacity) : base(capacity)

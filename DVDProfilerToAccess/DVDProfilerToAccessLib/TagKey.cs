@@ -1,10 +1,10 @@
+using System;
+using System.ComponentModel;
+using System.Diagnostics;
+using Profiler = DoenaSoft.DVDProfiler.DVDProfilerXML.Version400;
+
 namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 {
-    using System;
-    using System.ComponentModel;
-    using System.Diagnostics;
-    using Profiler = DVDProfilerXML.Version400;
-
     [ImmutableObject(true)]
     [DebuggerDisplay("{FullName}")]
     internal sealed class TagKey : IEquatable<TagKey>

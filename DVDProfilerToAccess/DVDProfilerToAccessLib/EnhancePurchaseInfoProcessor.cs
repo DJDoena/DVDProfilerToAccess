@@ -1,18 +1,18 @@
-﻿namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
-{
-    using System.Collections.Generic;
-    using System.Text;
-    using DVDProfilerHelper;
-    using EPI = EnhancedPurchaseInfo;
-    using Profiler = DVDProfilerXML.Version400;
+﻿using System.Collections.Generic;
+using System.Text;
+using DoenaSoft.ToolBox.Generics;
+using EPI = DoenaSoft.DVDProfiler.EnhancedPurchaseInfo;
+using Profiler = DoenaSoft.DVDProfiler.DVDProfilerXML.Version400;
 
+namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
+{
     internal static class EnhancePurchaseInfoProcessor
     {
         internal static void AddInsertCommand(List<StringBuilder> commands, Profiler.DVD profile, Profiler.PluginData pluginData)
         {
             if (pluginData.Any?.Length == 1)
             {
-                var epi = DVDProfilerSerializer<EPI.EnhancedPurchaseInfo>.FromString(pluginData.Any[0].OuterXml);
+                var epi = Serializer<EPI.EnhancedPurchaseInfo>.FromString(pluginData.Any[0].OuterXml);
 
                 AddInsertCommand(commands, profile, epi);
             }

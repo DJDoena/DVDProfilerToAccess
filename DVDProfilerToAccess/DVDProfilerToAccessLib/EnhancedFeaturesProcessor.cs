@@ -1,11 +1,11 @@
-﻿namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
-{
-    using System.Collections.Generic;
-    using System.Text;
-    using DVDProfilerHelper;
-    using EF = EnhancedFeatures;
-    using Profiler = DVDProfilerXML.Version400;
+﻿using System.Collections.Generic;
+using System.Text;
+using DoenaSoft.ToolBox.Generics;
+using EF = DoenaSoft.DVDProfiler.EnhancedFeatures;
+using Profiler = DoenaSoft.DVDProfiler.DVDProfilerXML.Version400;
 
+namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
+{
     internal static class EnhancedFeaturesProcessor
     {
         private const byte FeatureCount = 40;
@@ -14,7 +14,7 @@
         {
             if (pluginData.Any?.Length == 1)
             {
-                var ef = DVDProfilerSerializer<EF.EnhancedFeatures>.FromString(pluginData.Any[0].OuterXml);
+                var ef = Serializer<EF.EnhancedFeatures>.FromString(pluginData.Any[0].OuterXml);
 
                 AddInsertCommand(commands, profile, ef);
             }
