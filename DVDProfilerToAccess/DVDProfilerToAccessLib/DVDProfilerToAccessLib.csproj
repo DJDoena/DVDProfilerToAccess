@@ -6,7 +6,7 @@
 		<OutputType>Library</OutputType>
 		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
 		<RootNamespace>DoenaSoft.DVDProfiler.DVDProfilerToAccess</RootNamespace>
-		<AssemblyName>DoenaSoft.DVDProfilerToAccess</AssemblyName>
+		<AssemblyName>DVDProfilerToAccessLib</AssemblyName>
 		<SignAssembly>True</SignAssembly>
 		<AssemblyOriginatorKeyFile>DVDProfilerToAccessLib.snk</AssemblyOriginatorKeyFile>
 	</PropertyGroup>
@@ -16,12 +16,12 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="DoenaSoft.DigitalDownloadInfo.Interface" Version="2.0.0" />
+		<PackageReference Include="DoenaSoft.DigitalDownloadInfo.Interface" Version="2.0.1" />
 		<PackageReference Include="DoenaSoft.DVDProfilerXML" Version="5.0.4" />
-		<PackageReference Include="DoenaSoft.EnhancedFeatures.Interface" Version="2.0.1" />
-		<PackageReference Include="DoenaSoft.EnhancedNotes.Interface" Version="2.0.1" />
-		<PackageReference Include="DoenaSoft.EnhancedPurchaseInfo.Interface" Version="2.0.1" />
-		<PackageReference Include="DoenaSoft.EnhancedTitles.Interface" Version="2.0.1" />
+		<PackageReference Include="DoenaSoft.EnhancedFeatures.Interface" Version="2.0.4" />
+		<PackageReference Include="DoenaSoft.EnhancedNotes.Interface" Version="2.0.2" />
+		<PackageReference Include="DoenaSoft.EnhancedPurchaseInfo.Interface" Version="2.0.2" />
+		<PackageReference Include="DoenaSoft.EnhancedTitles.Interface" Version="2.0.2" />
 	</ItemGroup>
 
 	<ItemGroup>
