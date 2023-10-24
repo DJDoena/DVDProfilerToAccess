@@ -930,22 +930,27 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
             {
                 if (profile.MediaTypes.DVD)
                 {
-                    this.GetInsertDVDxMediaTypeDVDCommand(commands, profile);
+                    this.GetInsertDVDxMediaTypeCommand(commands, profile, "DVD");
                 }
 
                 if (profile.MediaTypes.BluRay)
                 {
-                    this.GetInsertDVDxMediaTypeBlurayCommand(commands, profile);
+                    this.GetInsertDVDxMediaTypeCommand(commands, profile, "Blu-ray");
                 }
 
                 if (profile.MediaTypes.HDDVD)
                 {
-                    this.GetInsertDVDxMediaTypeHDDVDCommand(commands, profile);
+                    this.GetInsertDVDxMediaTypeCommand(commands, profile, "HD-DVD");
+                }
+
+                if (profile.MediaTypes.UltraHD)
+                {
+                    this.GetInsertDVDxMediaTypeCommand(commands, profile, "Ultra HD");
                 }
 
                 if (!string.IsNullOrEmpty(profile.MediaTypes.CustomMediaType))
                 {
-                    this.GetInsertDVDxMediaTypeCustomCommand(commands, profile);
+                    this.GetInsertDVDxMediaTypeCommand(commands, profile, profile.MediaTypes.CustomMediaType);
                 }
             }
         }
@@ -1469,7 +1474,7 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
             commands.Add(commandText);
         }
 
-        private void GetInsertDVDxMediaTypeCustomCommand(List<StringBuilder> commands, Profiler.DVD profile)
+        private void GetInsertDVDxMediaTypeCommand(List<StringBuilder> commands, Profiler.DVD profile, string mediaType)
         {
             var commandText = new StringBuilder();
 
@@ -1478,52 +1483,7 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
             commandText.Append(", ");
             commandText.Append(PrepareTextForDb(profile.ID));
             commandText.Append(", ");
-            commandText.Append(_mediaTypes[profile.MediaTypes.CustomMediaType]);
-            commandText.Append(")");
-
-            commands.Add(commandText);
-        }
-
-        private void GetInsertDVDxMediaTypeHDDVDCommand(List<StringBuilder> commands, Profiler.DVD profile)
-        {
-            var commandText = new StringBuilder();
-
-            commandText.Append("INSERT INTO tDVDxMediaType VALUES (");
-            commandText.Append(this.IdCounter++);
-            commandText.Append(", ");
-            commandText.Append(PrepareTextForDb(profile.ID));
-            commandText.Append(", ");
-            commandText.Append(_mediaTypes["HD-DVD"]);
-            commandText.Append(")");
-
-            commands.Add(commandText);
-        }
-
-        private void GetInsertDVDxMediaTypeBlurayCommand(List<StringBuilder> commands, Profiler.DVD profile)
-        {
-            var commandText = new StringBuilder();
-
-            commandText.Append("INSERT INTO tDVDxMediaType VALUES (");
-            commandText.Append(this.IdCounter++);
-            commandText.Append(", ");
-            commandText.Append(PrepareTextForDb(profile.ID));
-            commandText.Append(", ");
-            commandText.Append(_mediaTypes["Blu-ray"]);
-            commandText.Append(")");
-
-            commands.Add(commandText);
-        }
-
-        private void GetInsertDVDxMediaTypeDVDCommand(List<StringBuilder> commands, Profiler.DVD profile)
-        {
-            var commandText = new StringBuilder();
-
-            commandText.Append("INSERT INTO tDVDxMediaType VALUES (");
-            commandText.Append(this.IdCounter++);
-            commandText.Append(", ");
-            commandText.Append(PrepareTextForDb(profile.ID));
-            commandText.Append(", ");
-            commandText.Append(_mediaTypes["DVD"]);
+            commandText.Append(_mediaTypes[mediaType]);
             commandText.Append(")");
 
             commands.Add(commandText);
@@ -2177,7 +2137,7 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
                 }
                 catch (OleDbException ex)
                 {
-                    throw (new ApplicationException($"Error at query:{Environment.NewLine}{commandText}", ex));
+                    throw new ApplicationException($"Error at query:{Environment.NewLine}{commandText}", ex);
                 }
             }
         }
@@ -2200,7 +2160,7 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 
                     if (version != DVDProfilerSchemaVersion)
                     {
-                        throw (new InvalidOperationException("Error: Database version incorrect. Abort."));
+                        throw new InvalidOperationException("Error: Database version incorrect. Abort.");
                     }
                 }
             }
