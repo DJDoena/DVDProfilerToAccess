@@ -13,7 +13,7 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
         {
             if (pluginData.Any?.Length == 1)
             {
-                var et = Serializer<ET.EnhancedTitles>.FromString(pluginData.Any[0].OuterXml);
+                var et = XmlSerializer<ET.EnhancedTitles>.FromString(pluginData.Any[0].OuterXml);
 
                 AddInsertCommand(commands, profile, et);
             }

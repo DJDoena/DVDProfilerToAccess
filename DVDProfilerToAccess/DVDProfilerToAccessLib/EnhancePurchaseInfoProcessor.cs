@@ -12,7 +12,7 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
         {
             if (pluginData.Any?.Length == 1)
             {
-                var epi = Serializer<EPI.EnhancedPurchaseInfo>.FromString(pluginData.Any[0].OuterXml);
+                var epi = XmlSerializer<EPI.EnhancedPurchaseInfo>.FromString(pluginData.Any[0].OuterXml);
 
                 AddInsertCommand(commands, profile, epi);
             }

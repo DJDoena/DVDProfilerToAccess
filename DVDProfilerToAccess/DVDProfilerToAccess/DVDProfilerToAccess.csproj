@@ -1,14 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
+		<AssemblyName>DVDProfilerToAccess</AssemblyName>
+		<RootNamespace>DoenaSoft.DVDProfiler.DVDProfilerToAccess</RootNamespace>
+		<OutputType>Exe</OutputType>
 		<TargetFrameworks>net472</TargetFrameworks>
 		<Platforms>x86</Platforms>
-		<OutputType>Exe</OutputType>
-		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-		<RootNamespace>DoenaSoft.DVDProfiler.DVDProfilerToAccess</RootNamespace>
-		<AssemblyName>DVDProfilerToAccess</AssemblyName>
 		<ApplicationIcon>djdsoft.ico</ApplicationIcon>
 		<UseWindowsForms>true</UseWindowsForms>
+		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
 	</PropertyGroup>
 
 	<ItemGroup>

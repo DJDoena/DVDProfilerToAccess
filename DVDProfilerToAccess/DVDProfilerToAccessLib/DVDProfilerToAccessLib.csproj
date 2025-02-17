@@ -1,12 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
+		<AssemblyName>DVDProfilerToAccessLib</AssemblyName>
+		<RootNamespace>DoenaSoft.DVDProfiler.DVDProfilerToAccess</RootNamespace>
+		<OutputType>Library</OutputType>
 		<TargetFrameworks>net472</TargetFrameworks>
 		<Platforms>x86</Platforms>
-		<OutputType>Library</OutputType>
 		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-		<RootNamespace>DoenaSoft.DVDProfiler.DVDProfilerToAccess</RootNamespace>
-		<AssemblyName>DVDProfilerToAccessLib</AssemblyName>
 		<SignAssembly>True</SignAssembly>
 		<AssemblyOriginatorKeyFile>DVDProfilerToAccessLib.snk</AssemblyOriginatorKeyFile>
 	</PropertyGroup>
@@ -17,7 +17,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="DoenaSoft.DigitalDownloadInfo.Interface" Version="2.0.1" />
-		<PackageReference Include="DoenaSoft.DVDProfiler.Xml" Version="5.0.8" />
+		<PackageReference Include="DoenaSoft.DVDProfiler.Xml" Version="5.0.11" />
 		<PackageReference Include="DoenaSoft.EnhancedFeatures.Interface" Version="2.0.4" />
 		<PackageReference Include="DoenaSoft.EnhancedNotes.Interface" Version="2.0.2" />
 		<PackageReference Include="DoenaSoft.EnhancedPurchaseInfo.Interface" Version="2.0.2" />

@@ -119,7 +119,7 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
 
                 _linkCategories = this.FillStaticHash<Profiler.CategoryRestriction>();
 
-                _collection = Serializer<Profiler.Collection>.Deserialize(sourceFile);
+                _collection = XmlSerializer<Profiler.Collection>.Deserialize(sourceFile);
 
                 this.FillDynamicHash();
 

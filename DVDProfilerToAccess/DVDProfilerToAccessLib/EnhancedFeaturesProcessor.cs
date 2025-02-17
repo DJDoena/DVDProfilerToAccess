@@ -14,7 +14,7 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
         {
             if (pluginData.Any?.Length == 1)
             {
-                var ef = Serializer<EF.EnhancedFeatures>.FromString(pluginData.Any[0].OuterXml);
+                var ef = XmlSerializer<EF.EnhancedFeatures>.FromString(pluginData.Any[0].OuterXml);
 
                 AddInsertCommand(commands, profile, ef);
             }

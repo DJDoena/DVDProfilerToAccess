@@ -13,7 +13,7 @@ namespace DoenaSoft.DVDProfiler.DVDProfilerToAccess
         {
             if (pluginData.Any?.Length == 1)
             {
-                var ddi = Serializer<DDI.DigitalDownloadInfo>.FromString(pluginData.Any[0].OuterXml);
+                var ddi = XmlSerializer<DDI.DigitalDownloadInfo>.FromString(pluginData.Any[0].OuterXml);
 
                 AddInsertCommand(commands, profile, ddi);
             }
