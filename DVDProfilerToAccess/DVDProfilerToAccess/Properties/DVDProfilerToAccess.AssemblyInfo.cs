@@ -8,9 +8,9 @@
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Doena Soft.")]
 [assembly: AssemblyProduct("DVD Profiler to Access")]
-[assembly: AssemblyCopyright("Copyright © Doena Soft. 2009 - 2024")]
+[assembly: AssemblyCopyright("Copyright © Doena Soft. 2009 - 2025")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
-[assembly: AssemblyVersion("1.9.5.4")]
-[assembly: AssemblyFileVersion("1.9.5.4")]
+[assembly: AssemblyVersion("1.9.6")]
+[assembly: AssemblyFileVersion("1.9.6")]
