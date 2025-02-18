@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<AssemblyName>DVDProfilerToAccessLib</AssemblyName>
+		<AssemblyName>DoenaSoft.DVDProfilerToAccess.Library</AssemblyName>
 		<RootNamespace>DoenaSoft.DVDProfiler.DVDProfilerToAccess</RootNamespace>
 		<OutputType>Library</OutputType>
 		<TargetFrameworks>net472</TargetFrameworks>
